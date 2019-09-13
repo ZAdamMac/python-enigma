@@ -233,16 +233,19 @@ class Operator(object):
     def format(self, message):
         """Accepts a string as input and does some parsing to it."""
         cased_message = message.upper()
-        message_characters = cased_message.strip(" ")
-        dict_replacement_characters = {".": "X", ":": "XX", ",": "ZZ", "?": "FRAQ",                                   "(": "KLAM", ")": "KLAM", """'""": "X"}
+        message_characters = cased_message.replace(" ", "")
+        dict_replacement_characters = {".": "X", ":": "XX", ",": "ZZ", "?": "FRAQ",
+                                       "(": "KLAM", ")": "KLAM", """'""": "X"}
+        for punct in dict_replacement_characters:
+            message_characters = message_characters.replace(punct, dict_replacement_characters[punct])
 
         for character in message_characters:
             if character not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-                message_characters = message_characters.strip(character)
+                message_characters = message_characters.replace(character, "")
 
         m = message_characters
         # This next step adds the spaces which cut the words up.
-        message_spaced = ''.join(m[i:i+self.word_length] for i in range(0, len(message_characters), self.word_length))
+        message_spaced = ' '.join([m[i:i+self.word_length] for i in range(0, len(message_characters), self.word_length)])
         return message_spaced
 
 
