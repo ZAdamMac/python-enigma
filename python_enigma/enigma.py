@@ -278,7 +278,10 @@ class Enigma(object):
             wheels.append(rotor_object)
         self.wheel_pack = RotorMechanism(wheels, reflector=Rotor(catalog,rotor_number=reflector, ringstellung="A"))
         if operator:
-            self.operator = Operator(word_length)
+            if isinstance(operator, Operator):
+                self.operator = operator(word_length)
+            else:
+                self.operator = Operator(word_length)
         else:
             self.operator = False
 
