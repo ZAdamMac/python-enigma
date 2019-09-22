@@ -2,7 +2,7 @@
 This project introduces a package, python_enigma, with an `enigma` module which can be imported and used to include Enigma-Machine-like encryption to your python project. Also included is a simplistic "Hello World" proof of concept, a basic catalogue of rotors in the jason format expected (`catalogue.json`), and a convenience script for preparing the catalogue from a csv.
 
 ## Security Notice
-In the gigahertz pocket computing, the Enigma cipher is useful as a point of curiosity only. None of the original security flaws with the Enigma machine as patented have been corrected.
+In the age of gigahertz pocket computing, the Enigma cipher is useful as a point of curiosity only. None of the original security flaws with the Enigma machine as patented have been corrected.
 
 ## Historical Accuracy Notice
 While pains were taken to ensure the interoperability of this emulator and the actual enigma machine, nothing about the module enforces historical accuracy in terms of the use of particular parts or settings, or the "tidying" features of the operator.
