@@ -122,20 +122,23 @@ class Rotor(object):
 
     It's worth noting the reflector is also treated as a rotor.
     """
-    def __init__(self, catalog, rotor_number, ringstellung):
+    def __init__(self, catalog, rotor_number, ringstellung, ignore_static):
         """Initialize the parameters of this individual rotor.
 
         :param catalog: A dictionary describing all rotors available.
         :param rotor_number: A rotor descriptor which can be found as a key in catalog
         :param ringstellung: The desired offset letter as a string.
         """
+        self.name = rotor_number
+        self.step_me = False
+        self.static = False
         if rotor_number in catalog:
             description = catalog[rotor_number]
         else:
             raise RotorNotFound
         if ringstellung is None:
-            ringstellung = 0
-        ringstellung = alpha_to_index(ringstellung.upper())
+            self.ringstellung = 0
+        self.ringstellung = alpha_to_index(ringstellung.upper())
 
         self.notch = []
         for position in description["notch"]:
@@ -143,17 +146,20 @@ class Rotor(object):
         self.wiring = {}
         self.wiring_back = {}
         for key in description["wiring"]:
-            trace = description["wiring"][key]
             new_in = int(key)  # Also known as "default_in"
-            new_out = int(trace)
-            new_in += ringstellung
-            new_out += ringstellung
-            if new_in > 26:  # Lazy Man's Modular Addition
-                new_in -= 26
-            if new_out > 26:
-                new_out -= 26
+            new_in = (new_in - self.ringstellung)
+            if new_in < 1:
+                new_in += 26
+            new_out = description["wiring"][str(new_in)]
             self.wiring.update({new_in: new_out})
             self.wiring_back.update({new_out: new_in})
+
+        if not ignore_static:
+            if "static" in description.keys():  # Issue 4: Bravo and Gamma rotor need to be static for m4
+                if description["static"]:
+                    self.static = True
+                else:
+                    self.static = False
 
 
 class RotorMechanism(object):
@@ -179,6 +185,26 @@ class RotorMechanism(object):
         position attribute of each rotor in its set. On each operation
         the position bit is added at both ends."""
         next_bit = bit_in
+
+        self.rotors[0].step_me = True  # The rightmost rotor always steps.
+        indexer = -1
+        for rotor in self.rotors:
+            indexer += 1
+            if rotor.position in rotor.notch:  # If a rotor is at its notch, the one on the left steps.
+                rotor.step_me = True
+                try:
+                    self.rotors[indexer+1].step_me = True
+                except IndexError:
+                    pass
+
+        for rotor in self.rotors:
+            if not rotor.static:  # Edge Case: The M4 B and C rotors do not rotate.
+                if rotor.step_me:
+                    rotor.step_me = False  # We gonna step now.
+                    rotor.position += 1
+                    if rotor.position > 25:  # Position is an index.
+                        rotor.position -= 26
+
         for rotor in self.rotors:
             transit_a = next_bit
             transit_b = addMod26(transit_a, rotor.position)
@@ -190,31 +216,6 @@ class RotorMechanism(object):
             next_bit = subMod26(rotor.wiring_back[transit_b], rotor.position)
 
         output = next_bit
-
-        indexing = 0
-        step_next = False
-        first = True  # Lazy hack to catch the first time we step through.
-        for rotor in self.rotors:
-            rotor.step_me = False
-            if first or step_next:  # First rotor ALWAYS steps.
-                rotor.step_me = True
-            first = False
-            step_next = False
-            if rotor.position == rotor.notch:
-                step_next = True
-            if step_next:
-                if self.rotors[indexing+1].position == self.rotors[indexing+1].notch:
-                    self.rotors[indexing+2].step_me = True
-            indexing += 1
-
-        for rotor in self.rotors:
-            if rotor.step_me:
-                rotor.position += 1
-                if rotor.position > 26:
-                    rotor.position -= 26
-
-        for rotor in self.rotors:
-            rotor.step_me = False
 
         return output
 
@@ -261,7 +262,8 @@ class Enigma(object):
 
     def __init__(self, catalog={}, stecker="", stator="military",
                  rotors=[["I",0], ["II",0], ["III",0]],
-                 reflector="UKW", operator=True, word_length=5,):
+                 reflector="UKW", operator=True, word_length=5,
+                 ignore_static_wheels=False):
         self.stecker = Stecker(setting=str(stecker))
         self.stator = Stator(mode=stator)
         # We have to reverse the rotors as we insert them because the signal
@@ -274,9 +276,10 @@ class Enigma(object):
         for rotor in rotors:
             rotor_req = rotor[0]
             ringstellung = rotor[1]
-            rotor_object = Rotor(catalog, rotor_req, ringstellung)
+            rotor_object = Rotor(catalog, rotor_req, ringstellung, ignore_static_wheels)
             wheels.append(rotor_object)
-        self.wheel_pack = RotorMechanism(wheels, reflector=Rotor(catalog,rotor_number=reflector, ringstellung="A"))
+        self.wheel_pack = RotorMechanism(wheels, reflector=Rotor(catalog,rotor_number=reflector, ringstellung="A",
+                                                                 ignore_static=ignore_static_wheels))
         if operator:
             if isinstance(operator, Operator):
                 self.operator = operator(word_length)
