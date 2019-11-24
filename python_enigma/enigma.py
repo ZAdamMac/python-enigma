@@ -137,22 +137,31 @@ class Rotor(object):
         else:
             raise RotorNotFound
         if ringstellung is None:
-            self.ringstellung = 0
-        self.ringstellung = alpha_to_index(ringstellung.upper())
+            ringstellung = "A"
+        ringstellung = alpha_to_num(ringstellung.upper())
+
+        # Extremely nasty ringstellung implementation follows.
+        # For this to work, ringstellung needs to be a number, rather than an index.
+
+        ringstellunged_to_keys = {}
+
+        pos = ringstellung
+        for i in range(1, 27):
+            if pos > 26:
+                pos -= 26
+            ringstellunged_to_keys.update({pos: i})
+            pos += 1
 
         self.notch = []
         for position in description["notch"]:
             self.notch.append(alpha_to_index(position))
         self.wiring = {}
         self.wiring_back = {}
-        for key in description["wiring"]:
-            new_in = int(key)  # Also known as "default_in"
-            new_in = (new_in - self.ringstellung)
-            if new_in < 1:
-                new_in += 26
-            new_out = description["wiring"][str(new_in)]
-            self.wiring.update({new_in: new_out})
-            self.wiring_back.update({new_out: new_in})
+
+        for shifted_input in ringstellunged_to_keys:
+            pin = ringstellunged_to_keys[shifted_input]
+            self.wiring.update({shifted_input: description["wiring"][str(pin)]})
+            self.wiring_back.update({description["wiring"][str(pin)]: shifted_input})
 
         if not ignore_static:
             if "static" in description.keys():  # Issue 4: Bravo and Gamma rotor need to be static for m4
@@ -185,6 +194,7 @@ class RotorMechanism(object):
         position attribute of each rotor in its set. On each operation
         the position bit is added at both ends."""
         next_bit = bit_in
+        print(bit_in)
 
         self.rotors[0].step_me = True  # The rightmost rotor always steps.
         indexer = -1
@@ -202,18 +212,21 @@ class RotorMechanism(object):
                 if rotor.step_me:
                     rotor.step_me = False  # We gonna step now.
                     rotor.position += 1
-                    if rotor.position > 25:  # Position is an index.
+                    if rotor.position > 25:  # Position is an index, can't exceed 25.
                         rotor.position -= 26
 
         for rotor in self.rotors:
-            transit_a = next_bit
-            transit_b = addMod26(transit_a, rotor.position)
-            next_bit = addMod26(rotor.wiring[transit_b], rotor.position)
-        next_bit = self.reflector.wiring[next_bit]
+            hits_wheel = add_on_letterwheel(next_bit, rotor.position)  # Confirmed this order experimentally.
+            exits_at = subtract_on_letterwheel(rotor.wiring[hits_wheel], rotor.position)
+            print(exits_at)
+            next_bit = exits_at
+        next_bit = self.reflector.wiring[exits_at]
+        print(next_bit)
         for rotor in reversed(self.rotors):
             transit_a = next_bit
-            transit_b = subMod26(transit_a, rotor.position)
-            next_bit = subMod26(rotor.wiring_back[transit_b], rotor.position)
+            transit_b = add_on_letterwheel(transit_a, rotor.position)  # Confirmed this order Experimentally.
+            next_bit = subtract_on_letterwheel(rotor.wiring_back[transit_b], rotor.position)
+            print(next_bit)
 
         output = next_bit
 
@@ -348,15 +361,19 @@ def alpha_to_num(char):
     return translator[char.upper()]
 
 
-def addMod26(original, add):
-    undiff = original + add
-    if undiff > 26:
-        undiff -= 26
-    return undiff
+def add_on_letterwheel(original, add):
+    """If you can find a way to do this mathematically I'm all ears."""
+    for i in range(0, add):
+        original += 1
+        if original == 27:
+            original = 1  # Rollover to A
+    return original
 
 
-def subMod26(original, less):
-    diff = original - less
-    if diff < 1:
-        diff += 26
-    return diff
+def subtract_on_letterwheel(original, less):
+    """Genuinely couldn't figure the math out on this one, sorry."""
+    for i in range(0, less):
+        original -= 1
+        if original == 0:
+            original = 26  # Rollunder to Z
+    return original
