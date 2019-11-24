@@ -22,14 +22,17 @@ Development was by Zac Adam-MacEwen. See the README.md for details.
 # General Purpose Imports Block
 import json
 
+
 class SteckerSettingsInvalid(Exception):
     """Raised if the stecker doesn't like its settings - either a duplicated
     letter was used or a non-letter character was used.
     """
 
+
 class UndefinedStatorError(Exception):
     """Raised if the stator mode string is not a defined stator type
     """
+
 
 class RotorNotFound(Exception):
     """Raised if the rotor requested is not found in the catalogue
@@ -143,13 +146,15 @@ class Rotor(object):
         # Extremely nasty ringstellung implementation follows.
         # For this to work, ringstellung needs to be a number, rather than an index.
 
-        ringstellunged_to_keys = {}
+        ringstellunged_to_keys = {}  # Gives the ringstellung offset for entry pins.
+        pins_to_ringstellunged = {}  # Gives the ringstellung offset for exit pins.
 
         pos = ringstellung
         for i in range(1, 27):
             if pos > 26:
                 pos -= 26
             ringstellunged_to_keys.update({pos: i})
+            pins_to_ringstellunged.update({i: pos})
             pos += 1
 
         self.notch = []
@@ -159,9 +164,10 @@ class Rotor(object):
         self.wiring_back = {}
 
         for shifted_input in ringstellunged_to_keys:
-            pin = ringstellunged_to_keys[shifted_input]
-            self.wiring.update({shifted_input: description["wiring"][str(pin)]})
-            self.wiring_back.update({description["wiring"][str(pin)]: shifted_input})
+            in_pin = ringstellunged_to_keys[shifted_input]
+            out_pin = pins_to_ringstellunged[description["wiring"][str(in_pin)]]
+            self.wiring.update({shifted_input: out_pin})
+            self.wiring_back.update({out_pin: shifted_input})
 
         if not ignore_static:
             if "static" in description.keys():  # Issue 4: Bravo and Gamma rotor need to be static for m4
@@ -194,7 +200,6 @@ class RotorMechanism(object):
         position attribute of each rotor in its set. On each operation
         the position bit is added at both ends."""
         next_bit = bit_in
-        print(bit_in)
 
         self.rotors[0].step_me = True  # The rightmost rotor always steps.
         indexer = -1
@@ -216,17 +221,16 @@ class RotorMechanism(object):
                         rotor.position -= 26
 
         for rotor in self.rotors:
-            hits_wheel = add_on_letterwheel(next_bit, rotor.position)  # Confirmed this order experimentally.
-            exits_at = subtract_on_letterwheel(rotor.wiring[hits_wheel], rotor.position)
-            print(exits_at)
-            next_bit = exits_at
-        next_bit = self.reflector.wiring[exits_at]
-        print(next_bit)
+            entry_face, exit_face = map_faces(rotor)
+            entry_pin = entry_face[next_bit]
+            exit_pin = rotor.wiring[entry_pin]
+            next_bit = exit_face[exit_pin]
+        next_bit = self.reflector.wiring[next_bit]
         for rotor in reversed(self.rotors):
-            transit_a = next_bit
-            transit_b = add_on_letterwheel(transit_a, rotor.position)  # Confirmed this order Experimentally.
-            next_bit = subtract_on_letterwheel(rotor.wiring_back[transit_b], rotor.position)
-            print(next_bit)
+            entry_face, exit_face = map_faces(rotor)
+            entry_pin = entry_face[next_bit]
+            exit_pin = rotor.wiring_back[entry_pin]
+            next_bit = exit_face[exit_pin]
 
         output = next_bit
 
@@ -361,19 +365,19 @@ def alpha_to_num(char):
     return translator[char.upper()]
 
 
-def add_on_letterwheel(original, add):
-    """If you can find a way to do this mathematically I'm all ears."""
-    for i in range(0, add):
-        original += 1
-        if original == 27:
-            original = 1  # Rollover to A
-    return original
+def map_faces(rotor):
+    """Are you ready for bad entry pinning mapping?"""
 
+    pos = rotor.position + 1  # We need a pin number, rather than an index
+    neutral_to_pins = {}
+    pins_to_neutral = {}
 
-def subtract_on_letterwheel(original, less):
-    """Genuinely couldn't figure the math out on this one, sorry."""
-    for i in range(0, less):
-        original -= 1
-        if original == 0:
-            original = 26  # Rollunder to Z
-    return original
+    for i in range(1, 27):
+        if pos > 26:
+            pos -= 26
+        neutral_to_pins.update({i: pos})
+        pins_to_neutral.update({pos: i})  # This is probably not right...
+        pos += 1
+
+    return neutral_to_pins, pins_to_neutral
+

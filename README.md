@@ -7,6 +7,8 @@ In the age of gigahertz pocket computing, the Enigma cipher is useful as a point
 ## Historical Accuracy Notice
 While pains were taken to ensure the interoperability of this emulator and the actual enigma machine, nothing about the module enforces historical accuracy in terms of the use of particular parts or settings, or the "tidying" features of the operator.
 
+In particular, this model allows for an aribtrary number of wheels to be used, some of which were not historically used together. All wheels obey an M3/M4-style "double stepping" movement pattern. The smoother gearbox stepping patterns of some later models are not emulated.
+
 ## Making use
 The principle way to use the Enigma module in your scripts is to import and invoke the Engigma class. For convenience, you can read in the string "default" as the catalog list to use the stock catalog included in the module.
 
