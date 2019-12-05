@@ -21,6 +21,7 @@ Development was by Zac Adam-MacEwen. See the README.md for details.
 
 # General Purpose Imports Block
 import json
+import os
 
 
 class SteckerSettingsInvalid(Exception):
@@ -52,18 +53,19 @@ class Stecker(object):
         """Accepts a string of space-seperated letter pairs denoting stecker
          settings, deduplicates them and grants the object its properties.
         """
-        stecker_pairs = setting.upper().split(" ")
-        used_characters = []
-        valid_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        self.stecker_setting = {}
-        for pair in stecker_pairs:
-            if (pair[0] in used_characters) or (pair[1] in used_characters):
-                raise SteckerSettingsInvalid
-            elif (pair[0] not in valid_chars) or (pair[1] not in valid_chars):
-                raise SteckerSettingsInvalid
-            else:
-                self.stecker_setting.update({pair[0]: pair[1]})
-                self.stecker_setting.update({pair[1]: pair[0]})
+        if setting is not None:
+            stecker_pairs = setting.upper().split(" ")
+            used_characters = []
+            valid_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            self.stecker_setting = {}
+            for pair in stecker_pairs:
+                if (pair[0] in used_characters) or (pair[1] in used_characters):
+                    raise SteckerSettingsInvalid
+                elif (pair[0] not in valid_chars) or (pair[1] not in valid_chars):
+                    raise SteckerSettingsInvalid
+                else:
+                    self.stecker_setting.update({pair[0]: pair[1]})
+                    self.stecker_setting.update({pair[1]: pair[0]})
 
     def steck(self, char):
         """Accepts a character and parses it through the stecker board.
@@ -286,7 +288,9 @@ class Enigma(object):
         # We have to reverse the rotors as we insert them because the signal
         # originates at the right-hand edge of the wheelpack.
         if catalog == "default":
-            with open("catalogue.json", "r") as file:
+            resource_dir = os.path.split(__file__)[0]
+            path_to_default_catalog = os.path.join(resource_dir, "catalogue.json")
+            with open(path_to_default_catalog, "r") as file:
                 catalog = json.load(file)
         wheels = []
         rotors.reverse()

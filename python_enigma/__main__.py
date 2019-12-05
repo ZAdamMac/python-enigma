@@ -24,12 +24,20 @@ from tkinter import *
 # We really only need things to execute here if being called as main, such as `python -m python_enigma`
 
 
-def test_button():
+def test_button():  # TODO Remove when no longer relied upon
     print("Button Works!")
     return
 
+
+def initialize_stock_enigma():
+    use_these = [("I", "A"), ("II", "A"), ("III", "A")]
+    machine = enigma.Enigma(catalog="default", stecker=None, stator="military", rotors=use_these, reflector="UKW",
+                            operator=True, word_length=5, ignore_static_wheels=False)
+    return machine
+
+
 if __name__ == "__main__":
-    # TODO DEF "fetch Stock Enigma"
+    machine_used = initialize_stock_enigma()
     window = Tk()
     window.title("Python Enigma v.%s" % __version__)
     # this code block draws the window itself.
