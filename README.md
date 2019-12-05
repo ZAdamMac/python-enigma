@@ -10,7 +10,7 @@ While pains were taken to ensure the interoperability of this emulator and the a
 In particular, this model allows for an aribtrary number of wheels to be used, some of which were not historically used together. All wheels obey an M3/M4-style "double stepping" movement pattern. The smoother gearbox stepping patterns of some later models are not emulated.
 
 ## Making use
-The principle way to use the Enigma module in your scripts is to import and invoke the Engigma class. For convenience, you can read in the string "default" as the catalog list to use the stock catalog included in the module.
+The principle way to use the Enigma module in your scripts is to import and invoke the Enigma class. For convenience, you can read in the string "default" as the catalog list to use the stock catalog included in the module.
 
 The Enigma class accepts the following arguments on initialization:
 - catalog: a dictionary of rotor bindings, or the string "default" to use the stock bindings included in the module.

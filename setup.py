@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="python_enigma",
-    version="1.1.0",
+    version="1.2.0dev4",
     author="Zachary Adam-MacEwen",
     author_email="zadammac@kenshosec.com",
     description="A simple module which adds Enigma Machine-emulating functionality to your python projects.",
