@@ -20,6 +20,7 @@ __version__ = "1.2.0Dev"
 
 from . import enigma
 from tkinter import *
+import webbrowser
 
 # We really only need things to execute here if being called as main, such as `python -m python_enigma`
 
@@ -29,11 +30,43 @@ def test_button():  # TODO Remove when no longer relied upon
     return
 
 
+def display_about_window():
+    about_window = Toplevel(window)
+    box = LabelFrame(about_window, text="About Python Enigma")
+    about_blurb = "This is a toy project intending to implement the Enigma Machine as originally " \
+                  "designed by Arthur Scherbius. Enigma was an electromechanical implementation of " \
+                  "a polyalphabetic substitution cypher. It's no longer considered " \
+                  "cryptographically secure, but the device itself was fairly interesting.\n\n" \
+                  "No effort has been made to correct any of the cryptographic flaws in enigma; " \
+                  "this implementation is meant to be as faithful as possible. Additionally, " \
+                  "steps have been taken to attempt to emulate not just the Wehrmacht enigma, but " \
+                  "the commercial models as well.\n\nFurther information is available using the links below." \
+                  "\n\nThis is a work product of Kensho Security Labs," \
+                  " provided under the Apache 2.0 License."
+    box.grid(row=0, column=0)
+    text = Message(box, text=about_blurb, width=500)
+    text.pack()
+    ks_button = Button(box, text="Kensho Security Labs", command=launch_kenshosec, width=15)
+    gh_button = Button(box, text="Github Project Page", command=launch_github, width=15)
+    gh_button.pack()
+    ks_button.pack()
+
+
 def initialize_stock_enigma():
     use_these = [("I", "A"), ("II", "A"), ("III", "A")]
     machine = enigma.Enigma(catalog="default", stecker=None, stator="military", rotors=use_these, reflector="UKW",
                             operator=True, word_length=5, ignore_static_wheels=False)
     return machine
+
+
+def launch_kenshosec():
+    webbrowser.open("https://www.kenshosec.com/Projects")
+    return
+
+
+def launch_github():
+    webbrowser.open("https://www.github.com/ZAdamMac/python-enigma")
+    return
 
 
 if __name__ == "__main__":
@@ -71,7 +104,7 @@ if __name__ == "__main__":
     # This code populates the various items that need to go in the controls pane!
     go_button = Button(controls_pane, text="Process Message", command=test_button, width=25)  # TODO The Do!
     reset_button = Button(controls_pane, text="Reset State", command=test_button, width=25)  # TODO def
-    credits_button = Button(controls_pane, text="Credits", command=test_button, width=25)  # TODO def!
+    credits_button = Button(controls_pane, text="About python_enigma", command=display_about_window, width=25)
     go_button.grid(row=0)
     reset_button.grid(row=1)
     credits_button.grid(row=2)
