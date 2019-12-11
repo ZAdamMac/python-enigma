@@ -52,8 +52,35 @@ def display_about_window():
     ks_button.pack()
 
 
+def fill_wheel_states():
+    wheel_state_raw = machine_used.wheel_pack.rotors.copy()
+    wheel_state_raw.reverse()  # wheels will now appear in visible order, as indexed.
+    counter = 1
+    for rotor in wheel_state_raw:  # we can iterate over these to start filling the parent.
+        readable_pos = enigma.num_to_alpha(rotor.position)
+        wheel_id = rotor.name
+        ringstellung = rotor.ringstellung
+        new_wheel = LabelFrame(wheel_states, width=25, height=25, text=("%s" % str(counter)))
+        new_wheel.pack(side=LEFT)
+        pos_var = StringVar()
+        pos_var.set(readable_pos)
+        pos_label = Label(new_wheel, text="Position:")
+        pos_label.grid(row=0, column=0)
+        wheel_label = Label(new_wheel, text="Wheel:")
+        wheel_label.grid(row=0, column=1)
+        wheel_position_setting = Entry(new_wheel, width=1, textvariable=pos_var)
+        wheel_position_setting.grid_propagate(0)
+        wheel_position_setting.grid(row=1, column=0)
+        wheel_type = Label(new_wheel, text=wheel_id)
+        wheel_type.grid(row=1, column=1)
+        rings_label = Label(new_wheel, text="Ringstellung:")
+        rings_setting = Label(new_wheel, text=ringstellung)
+        rings_label.grid(row=2, column=0)
+        rings_setting.grid(row=2, column=1)
+        counter += 1
+
 def initialize_stock_enigma():
-    use_these = [("I", "A"), ("II", "A"), ("III", "A")]
+    use_these = [("Beta", "A"), ("I", "A"), ("II", "A"), ("III", "A")]
     machine = enigma.Enigma(catalog="default", stecker=None, stator="military", rotors=use_these, reflector="UKW",
                             operator=True, word_length=5, ignore_static_wheels=False)
     return machine
@@ -83,7 +110,7 @@ if __name__ == "__main__":
     output_field = Text(output_pane, width=80, height=24)
     output_field.pack()
     window.update()  # Needed because we're taking some dynamic sizes!
-    settings_pane = LabelFrame(window, text="Machine State", height=input_pane.winfo_height(), width=450)
+    settings_pane = LabelFrame(window, text="Machine State", height=input_pane.winfo_height(), width=537)
     settings_pane.grid_propagate(0)
     settings_pane.grid(column=1, row=0)
     controls_pane = Frame(window)
@@ -92,14 +119,18 @@ if __name__ == "__main__":
     # This code populates the various items that need to go in the settings pane
     # This pane uses grid geometry.
     wheel_selections = Button(settings_pane, command=test_button, text="Select Wheels")  # TODO Define Correct Command
+    wheel_selections.grid_anchor(CENTER)
     wheel_selections.grid(column=0, row=0)
     stecker_config = Button(settings_pane, command=test_button, text="Steckerboard Config")
+    stecker_config.grid_anchor(CENTER)
     stecker_config.grid(column=1, row=0)
     wheel_states = LabelFrame(settings_pane, text="Wheel States")
-    filler = Label(wheel_states, text="We don't fill this frame because that requires a function not yet defined!")
+    wheel_states.grid_anchor(CENTER)
+    #filler = Label(wheel_states, text="We don't fill this frame because that requires a function not yet defined!")
     wheel_states.grid(row=1, columnspan=2)
-    # TODO DEF - Fill_Wheel_States
-    filler.pack()
+    wheel_states.grid_anchor(CENTER)
+    fill_wheel_states()
+    #filler.pack()
 
     # This code populates the various items that need to go in the controls pane!
     go_button = Button(controls_pane, text="Process Message", command=test_button, width=25)  # TODO The Do!

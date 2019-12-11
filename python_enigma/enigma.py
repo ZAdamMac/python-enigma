@@ -142,8 +142,10 @@ class Rotor(object):
         else:
             raise RotorNotFound
         if ringstellung is None:
-            ringstellung = "A"
-        ringstellung = alpha_to_num(ringstellung.upper())
+            self.ringstellung = "A"
+        else:
+            self.ringstellung = ringstellung
+        ringstellung = alpha_to_num(self.ringstellung.upper())
 
         # Extremely nasty ringstellung implementation follows.
         # For this to work, ringstellung needs to be a number, rather than an index.
@@ -368,6 +370,15 @@ def alpha_to_num(char):
             }
     return translator[char.upper()]
 
+def num_to_alpha(integ):
+    """takes a numeral value and spits out the corresponding letter."""
+    translator = {
+                1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F', 7: 'G', 8: 'H',
+                9: 'I', 10: 'J', 11: 'K', 12: 'L', 13: 'M', 14: 'N', 15: 'O',
+                16: 'P', 17: 'Q', 18: 'R', 19: 'S', 20: 'T', 21: 'U', 22: 'V',
+                23: 'W', 24: 'X', 25: 'Y', 26: 'Z'
+                }
+    return translator[integ]
 
 def map_faces(rotor):
     """Are you ready for bad entry pinning mapping?"""
