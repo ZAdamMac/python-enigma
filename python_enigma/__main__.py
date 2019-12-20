@@ -20,6 +20,7 @@ __version__ = "1.2.0Dev"
 
 from . import enigma
 from tkinter import *
+from tkinter import messagebox
 import webbrowser
 
 # We really only need things to execute here if being called as main, such as `python -m python_enigma`
@@ -52,6 +53,24 @@ def display_about_window():
     ks_button.pack()
 
 
+def display_stecker_window():
+    steck_window = Toplevel(window)
+    box = LabelFrame(steck_window, text="Steckerboard Settings")
+    steck_blurb = "The physical enigma implementation relied on a physical plugboard, the steckerboard, from " \
+                  "which the operator could apply jumper cables to 'bridge' two letters together. This transform " \
+                  "was applied both before the signal passed through the rotor pack, and after. \n" \
+                  "You can simulate this behavior by providing a space-seperated list of stecker positions below, such"\
+                  " as 'AB CD', meaning A is jumped to B (and vice-versa), and the same is true for C and D."
+    box.grid(row=0, column=0)
+    text = Message(box, text=steck_blurb, width=500)
+    text.pack()
+    stecker_string = StringVar()
+    steckers = Entry(box, textvariable=stecker_string, width=60)
+    steckers.pack()
+    ks_button = Button(box, text="Set", command=lambda: set_steckers(steckers.get(), steck_window), width=15)
+    ks_button.pack()
+
+
 def fill_wheel_states():
     wheel_state_raw = machine_used.wheel_pack.rotors.copy()
     wheel_state_raw.reverse()  # wheels will now appear in visible order, as indexed.
@@ -79,6 +98,7 @@ def fill_wheel_states():
         rings_setting.grid(row=2, column=1)
         counter += 1
 
+
 def initialize_stock_enigma():
     use_these = [("Beta", "A"), ("I", "A"), ("II", "A"), ("III", "A")]
     machine = enigma.Enigma(catalog="default", stecker=None, stator="military", rotors=use_these, reflector="UKW",
@@ -94,6 +114,19 @@ def launch_kenshosec():
 def launch_github():
     webbrowser.open("https://www.github.com/ZAdamMac/python-enigma")
     return
+
+
+def set_steckers(str, win):
+    tgt_stecker = str
+    try:
+        machine_used.stecker = enigma.Stecker(tgt_stecker)
+        steckers_set = True
+    except enigma.SteckerSettingsInvalid:
+        steckers_set = False
+        messagebox.showerror("Invalid Stecker Settings", "These stecker settings aren't valid!")
+    if steckers_set:
+        print(machine_used.stecker.stecker_setting)
+        win.destroy()
 
 
 if __name__ == "__main__":
@@ -121,7 +154,7 @@ if __name__ == "__main__":
     wheel_selections = Button(settings_pane, command=test_button, text="Select Wheels")  # TODO Define Correct Command
     wheel_selections.grid_anchor(CENTER)
     wheel_selections.grid(column=0, row=0)
-    stecker_config = Button(settings_pane, command=test_button, text="Steckerboard Config")
+    stecker_config = Button(settings_pane, command=display_stecker_window, text="Steckerboard Config")
     stecker_config.grid_anchor(CENTER)
     stecker_config.grid(column=1, row=0)
     wheel_states = LabelFrame(settings_pane, text="Wheel States")
