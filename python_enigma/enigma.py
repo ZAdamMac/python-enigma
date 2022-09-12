@@ -210,11 +210,11 @@ class RotorMechanism(object):
         for rotor in self.rotors:
             indexer += 1
             if rotor.position in rotor.notch:  # If a rotor is at its notch, the one on the left steps.
-                rotor.step_me = True
-                try:
-                    self.rotors[indexer+1].step_me = True
-                except IndexError:
-                    pass
+                if rotor.step_me:
+                    try:
+                        self.rotors[indexer+1].step_me = True
+                    except IndexError:
+                        pass
 
         for rotor in self.rotors:
             if not rotor.static:  # Edge Case: The M4 B and C rotors do not rotate.
