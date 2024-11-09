@@ -40,6 +40,11 @@ class RotorNotFound(Exception):
     """
 
 
+class ReflectorNotFound(Exception):
+    """Raised if the refelctor requested is not found in the catalogue
+    """
+
+
 class Stecker(object):
     """A class implementation of the stecker. The stecker board was a set of
     junctions which could rewire both the lamps and keys for letters in a
@@ -140,7 +145,7 @@ class Rotor(object):
         if rotor_number in catalog:
             description = catalog[rotor_number]
         else:
-            raise RotorNotFound
+            raise RotorNotFound(rotor_number)
         if ringstellung is None:
             self.ringstellung = "A"
         else:
@@ -301,8 +306,14 @@ class Enigma(object):
             ringstellung = rotor[1]
             rotor_object = Rotor(catalog, rotor_req, ringstellung, ignore_static_wheels)
             wheels.append(rotor_object)
-        self.wheel_pack = RotorMechanism(wheels, reflector=Rotor(catalog,rotor_number=reflector, ringstellung="A",
-                                                                 ignore_static=ignore_static_wheels))
+        try:
+            reflector = Rotor(catalog,
+                              rotor_number=reflector,
+                              ringstellung="A",
+                              ignore_static=ignore_static_wheels)
+        except RotorNotFound:
+            raise ReflectorNotFound(reflector) from None
+        self.wheel_pack = RotorMechanism(wheels, reflector=reflector)
         if operator:
             if isinstance(operator, Operator):
                 self.operator = operator(word_length)
