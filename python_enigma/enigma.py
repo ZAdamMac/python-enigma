@@ -123,7 +123,7 @@ class Stator(object):
         self.destator = {}
         for key in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
             reflected = self.stator_settings[key]
-            self.destator.update({reflected: key})
+            self.destator[reflected] = key
 
     def stat(self, char):
         char = char.upper()
@@ -175,8 +175,8 @@ class Rotor(object):
         for i in range(1, 27):
             if pos > 26:
                 pos -= 26
-            ringstellunged_to_keys.update({pos: i})
-            pins_to_ringstellunged.update({i: pos})
+            ringstellunged_to_keys[pos] = i
+            pins_to_ringstellunged[i] = pos
             pos += 1
 
         self.notch = []
@@ -188,8 +188,8 @@ class Rotor(object):
         for shifted_input in ringstellunged_to_keys:
             in_pin = ringstellunged_to_keys[shifted_input]
             out_pin = pins_to_ringstellunged[description["wiring"][str(in_pin)]]
-            self.wiring.update({shifted_input: out_pin})
-            self.wiring_back.update({out_pin: shifted_input})
+            self.wiring[shifted_input] = out_pin
+            self.wiring_back[out_pin] = shifted_input
 
         if not ignore_static:
             if "static" in description.keys():  # Issue 4: Bravo and Gamma rotor need to be static for m4
@@ -436,8 +436,8 @@ def map_faces(rotor):
     for i in range(1, 27):
         if pos > 26:
             pos -= 26
-        neutral_to_pins.update({i: pos})
-        pins_to_neutral.update({pos: i})  # This is probably not right...
+        neutral_to_pins[i] = pos
+        pins_to_neutral[pos] = i  # This is probably not right...
         pos += 1
 
     return neutral_to_pins, pins_to_neutral
