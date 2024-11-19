@@ -69,8 +69,8 @@ class Stecker(object):
                 elif (pair[0] not in valid_chars) or (pair[1] not in valid_chars):
                     raise SteckerSettingsInvalid
                 else:
-                    self.stecker_setting.update({pair[0]: pair[1]})
-                    self.stecker_setting.update({pair[1]: pair[0]})
+                    self.stecker_setting[pair[0]] = pair[1]
+                    self.stecker_setting[pair[1]] = pair[0]
 
     def steck(self, char):
         """Accepts a character and parses it through the stecker board.
@@ -79,6 +79,13 @@ class Stecker(object):
             return self.stecker_setting[char]
         else:
             return char  # Un-jumped characters should be returned as is.
+
+    def __repr__(self):
+        settings = []
+        for fromchar, tochar in self.stecker_setting.items():
+            if tochar + fromchar not in settings:
+                settings.append(fromchar + tochar)
+        return f'Stecker("{" ".join(settings)}")'
 
 
 class Stator(object):
@@ -95,6 +102,7 @@ class Stator(object):
         currently implemented the options are "civilian" or "military"
         """
         mode = mode.lower()
+        self.mode = mode
         if mode == "civilian":
             self.stator_settings = {
                 "Q": 1, "W": 2, "E": 3, "R": 4, "T": 5, "Z": 6, "U": 7, "I": 8,
@@ -123,6 +131,9 @@ class Stator(object):
 
     def destat(self, signal):
         return self.destator[signal]
+    
+    def __repr__(self):
+        return f"Stator({self.mode!r})"
 
 
 class Rotor(object):
@@ -142,6 +153,8 @@ class Rotor(object):
         self.name = rotor_number
         self.step_me = False
         self.static = False
+        self.catalog = catalog
+        self.ignore_static = ignore_static
         if rotor_number in catalog:
             description = catalog[rotor_number]
         else:
@@ -184,6 +197,9 @@ class Rotor(object):
                     self.static = True
                 else:
                     self.static = False
+    
+    def __repr__(self):
+        return f'Rotor("{self.catalog!r}", {self.name!r}", {self.ringstellung!r}, {self.ignore_static!r})'
 
 
 class RotorMechanism(object):
@@ -244,7 +260,9 @@ class RotorMechanism(object):
         output = next_bit
 
         return output
-
+    
+    def __repr__(self):
+        return f"RotorMechanism({self.rotors!r}, {self.reflector!r})"
 
 class Operator(object):
     """A special preparser that does some preformatting to the feed. This
@@ -275,6 +293,8 @@ class Operator(object):
         message_spaced = ' '.join([m[i:i+self.word_length] for i in range(0, len(message_characters), self.word_length)])
         return message_spaced
 
+    def __repr__(self) -> str:
+        return f"Operator({self.word_length!r})"
 
 class Enigma(object):
     """A magic package that instantiates everything, allowing you to call your
@@ -292,6 +312,10 @@ class Enigma(object):
                  ignore_static_wheels=False):
         self.stecker = Stecker(setting=str(stecker))
         self.stator = Stator(mode=stator)
+        self.rotor_names = rotors
+        self.reflector_name = reflector
+        self.operator_param = operator
+        self.ignore_static_wheels = ignore_static_wheels
         # We have to reverse the rotors as we insert them because the signal
         # originates at the right-hand edge of the wheelpack.
         if catalog == "default":
@@ -299,6 +323,7 @@ class Enigma(object):
             path_to_default_catalog = os.path.join(resource_dir, "catalogue.json")
             with open(path_to_default_catalog, "r") as file:
                 catalog = json.load(file)
+        self.catalog = catalog
         wheels = []
         rotors.reverse()
         for rotor in rotors:
@@ -358,6 +383,16 @@ class Enigma(object):
             str_ciphertext += next_char
 
         return str_ciphertext
+    
+    def __repr__(self):
+        return f"""Enigma(catalog={self.catalog},
+stecker={self.stecker.__repr__()},
+stator={self.stator.__repr__()},
+rotors={self.rotor_names},
+reflector={self.reflector_name},
+operator={self.operator_param},
+word_length={self.operator.word_length},
+ignore_static_wheels={self.ignore_static_wheels})"""
 
 
 def alpha_to_index(char):
