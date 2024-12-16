@@ -19,7 +19,20 @@ Development was by Zac Adam-MacEwen. See the README.md for details.
 __version__ = "1.2.0Dev"
 
 from . import enigma
-from tkinter import *
+from tkinter import (
+    Button,
+    CENTER,
+    Entry,
+    Frame,
+    Label,
+    LabelFrame,
+    LEFT,
+    Message,
+    StringVar,
+    Text,
+    Tk,
+    Toplevel,
+)
 import webbrowser
 
 # We really only need things to execute here if being called as main, such as `python -m python_enigma`

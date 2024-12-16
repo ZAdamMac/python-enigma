@@ -1,6 +1,5 @@
 import csv
 import json
-import os
 from python_enigma import enigma
 
 catalogue = {}
