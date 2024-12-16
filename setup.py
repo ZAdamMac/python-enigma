@@ -13,5 +13,5 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     include_package_data=True,
     url="https://github.com/ZAdamMac/python-enigma",
-    packages=setuptools.find_packages()
+    packages=setuptools.find_packages(),
 )
