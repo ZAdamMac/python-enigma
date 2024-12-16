@@ -143,7 +143,7 @@ if __name__ == "__main__":
     settings_pane = LabelFrame(
         window, text="Machine State", height=input_pane.winfo_height(), width=537
     )
-    settings_pane.grid_propagate(0)
+    settings_pane.grid_propagate(False)
     settings_pane.grid(column=1, row=0)
     controls_pane = Frame(window)
     controls_pane.grid(column=1, row=1)
