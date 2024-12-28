@@ -238,6 +238,30 @@ class TestMutation:
         _ = machine.parse(plaintext)
         assert wheels == wheels_copy
 
+    def test_machine_mutation(self) -> None:
+        """Fails if external change in rotors changes machine behavior."""
+        plaintext = "hello world"
+
+        wheels = [("I", "A"), ("II", "B"), ("III", "C")]
+
+        machine = enigma.Enigma(
+            catalog="default",
+            stecker="AQ BJ",
+            rotors=wheels,
+            reflector="Reflector B",
+            stator="military",
+        )
+
+        machine.set_wheels("ABC")
+        ctext1 = machine.parse(plaintext)
+
+        # Now we change wheels here
+        wheels = [("IV", "A"), ("V", "B"), ("VI", "C")]
+        machine.set_wheels("ABC")
+        ctext2 = machine.parse(plaintext)
+
+        assert ctext1 == ctext2
+
 
 if __name__ == "__main__":
     sys.exit(pytest.main(args=[__file__]))
