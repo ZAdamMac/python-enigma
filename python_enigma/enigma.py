@@ -22,6 +22,8 @@ Development was by Zac Adam-MacEwen. See the README.md for details.
 # General Purpose Imports Block
 import json
 import os
+from typing import Any
+from collections.abc import Sequence
 
 
 class SteckerSettingsInvalid(Exception):
@@ -306,13 +308,22 @@ class Enigma(object):
     - set: change various settings. See below.
     """
 
-    def __init__(self, catalog={}, stecker="", stator="military",
-                 rotors=[["I",0], ["II",0], ["III",0]],
-                 reflector="UKW", operator=True, word_length=5,
+    def __init__(self,
+                 catalog: dict[str, Any] | str = "default",
+                 stecker: str | Sequence[str] = "ZZZ",
+                 stator="military",
+                 rotors: Sequence[Sequence[str]] = (
+                        ("I", 'A'), ("II", 'A'), ("III", 'A')
+                     ),
+                 reflector="UKW",
+                 operator: bool | Operator = True,
+                 word_length=5,
                  ignore_static_wheels=False):
-        self.stecker = Stecker(setting=str(stecker))
+        stecker = ''.join(stecker)
+        self.stecker = Stecker(setting=stecker)
         self.stator = Stator(mode=stator)
-        self.rotor_names = rotors
+        # We want to _copy_ values for rotors, as original might be mutable.
+        self.rotor_names = tuple((w[0], w[1]) for w in rotors)
         self.reflector_name = reflector
         self.operator_param = operator
         self.ignore_static_wheels = ignore_static_wheels
@@ -325,7 +336,7 @@ class Enigma(object):
                 catalog = json.load(file)
         self.catalog = catalog
         wheels = []
-        rotors.reverse()
+        rotors = rotors[::-1]  # reverse the tuple
         for rotor in rotors:
             rotor_req = rotor[0]
             ringstellung = rotor[1]
