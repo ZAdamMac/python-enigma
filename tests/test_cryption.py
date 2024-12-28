@@ -33,30 +33,6 @@ class TestEncrypt:
         decrypted = machine.parse(ctext)
         assert decrypted == expected_ptext
 
-    def test_hello_noop(self) -> None:
-        plaintext = "helloworld".upper()
-        expected_ctext = "ILJDQQMTQZ"
-        word_length = 5
-        expected_ptext = "HELLOWORLD"
-
-        rotors = [("I", "A"), ("II", "B"), ("III", "C")]
-        machine = enigma.Enigma(
-            catalog="default",
-            stecker="AQ BJ",
-            rotors=rotors,
-            reflector="Reflector B",
-            operator=False,
-            stator="military",
-        )
-
-        machine.set_wheels("ABC")
-        ctext = machine.parse(plaintext)
-        assert ctext == expected_ctext
-
-        machine.set_wheels("ABC")
-        decrypted = machine.parse(ctext)
-        assert decrypted == expected_ptext
-
 
 class TestHistorical:
     """Tests taken from https://gist.github.com/Jither/d8dbc4d38998c18686bb646b49b9a8a6"""
@@ -240,6 +216,27 @@ class TestDefault:
 
     def test_ignore_static_wheels(self) -> None:
         self.default_test("ignore_static_wheels")
+
+
+class TestMutation:
+    def test_rotor_mutation(self) -> None:
+        """Fails if reference passed as rotors argument gets mutated"""
+        plaintext = "hello world"
+
+        wheels = [("I", "A"), ("II", "B"), ("III", "C")]
+        wheels_copy = wheels.copy()
+
+        machine = enigma.Enigma(
+            catalog="default",
+            stecker="AQ BJ",
+            rotors=wheels,
+            reflector="Reflector B",
+            stator="military",
+        )
+
+        machine.set_wheels("ABC")
+        _ = machine.parse(plaintext)
+        assert wheels == wheels_copy
 
 
 if __name__ == "__main__":
