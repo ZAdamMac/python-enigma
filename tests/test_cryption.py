@@ -220,23 +220,23 @@ class TestDefault:
 
 class TestMutation:
     def test_rotor_mutation(self) -> None:
+        """Fails if reference passed as rotors argument gets mutated"""
         plaintext = "hello world"
-        word_length = 5
-        rotors = [("I", "A"), ("II", "B"), ("III", "C")]
-        rotors_copy = rotors.copy()
+
+        wheels = [("I", "A"), ("II", "B"), ("III", "C")]
+        wheels_copy = wheels.copy()
+
         machine = enigma.Enigma(
             catalog="default",
             stecker="AQ BJ",
-            rotors=rotors,
+            rotors=wheels,
             reflector="Reflector B",
-            operator=True,
-            word_length=word_length,
             stator="military",
         )
 
         machine.set_wheels("ABC")
         _ = machine.parse(plaintext)
-        assert rotors == rotors_copy
+        assert wheels == wheels_copy
 
 
 if __name__ == "__main__":
