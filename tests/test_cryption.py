@@ -1,5 +1,7 @@
 import sys
 from collections import Counter
+from collections.abc import Mapping, Sequence
+from typing import Any
 import pytest
 
 from python_enigma import enigma
@@ -153,14 +155,13 @@ class TestOperatorIssue:
         )
         machine.set_wheels(ring_settings)
 
-        ptext = 'A' * 20
+        ptext = "A" * 20
 
         operator = enigma.Operator(word_length=5)
 
         ptext = operator.format(ptext)
 
         ctext = machine.parse(ptext)
-
 
         # This test will fail if rotors aren't advancing
         assert ctext[0] != ctext[1]
@@ -173,22 +174,72 @@ class TestOperatorIssue:
 
 
 class TestDefault:
-    """Attempt to test that the mutable defaults don't cause problems."""
+    """Test that defaults work."""
 
-    def test_default_rotor(self):
-        machine1 = enigma.Enigma(catalog="default", stecker="DEF")
-        machine1.set_wheels("XYZ")
+    WORKING_ARGS: Mapping[str, str | Sequence | bool | int] = {
+        "catalog": "default",
+        "stator": "military",
+        "stecker": "AQ BJ",
+        "rotors": [("I", "A"), ("II", "B"), ("III", "C")],
+        "reflector": "Reflector B",
+        "operator": True,
+        "word_length": 5,
+        "ignore_static_wheels": False,
+    }
+    """
+    Immutable dict of argument combinations that work and should be
+    compatible with defaults.
+    """
 
-        machine2 = enigma.Enigma(catalog="default", stecker="DEF")
-        machine2.set_wheels("XYZ")
-        machine2.set_stecker("DEF")
+    WHEEL_SETTINGS = "ABC"
+    PTEXT = "HELLOWORLD"
 
-        ptext = "AAAAAAAAAAAAAAAA"
+    def default_test(self, key: str | None = None) -> None:
+        kwargs: dict[str, Any] = {
+            k: self.WORKING_ARGS[k] for k in self.WORKING_ARGS.keys()
+        }
+        if key:
+            del kwargs[key]
 
-        ctext1 = machine1.parse(ptext)
-        ctext2 = machine2.parse(ptext)
+        machine = enigma.Enigma(**kwargs)
+        machine.set_wheels(self.WHEEL_SETTINGS)
 
-        assert ctext1 == ctext2
+        ctext = machine.parse(self.PTEXT)
+        ctext = ctext.replace(" ", "")
+
+        machine.set_wheels(self.WHEEL_SETTINGS)
+        ptext = machine.parse(ctext)
+        ptext = ptext.replace(" ", "")
+
+        assert ptext == self.PTEXT
+
+    def test_test(self) -> None:
+        """Confirm that WORKING_ARGS work."""
+        self.default_test()
+
+    def test_rotor(self) -> None:
+        self.default_test("rotors")
+
+    def test_catalog(self) -> None:
+        self.default_test("catalog")
+
+    def test_stecker(self) -> None:
+        self.default_test("stecker")
+
+    def test_stator(self) -> None:
+        self.default_test("stator")
+
+    def test_reflector(self) -> None:
+        self.default_test("reflector")
+
+    def test_operator(self) -> None:
+        self.default_test("operator")
+
+    def test_word_length(self) -> None:
+        self.default_test("word_length")
+
+    def test_ignore_static_wheels(self) -> None:
+        self.default_test("ignore_static_wheels")
 
 
 if __name__ == "__main__":
