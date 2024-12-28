@@ -60,11 +60,11 @@ class Stecker(object):
         """Accepts a string of space-seperated letter pairs denoting stecker
          settings, deduplicates them and grants the object its properties.
         """
+        self.stecker_setting: dict[str, str] = {}
         if setting is not None:
             stecker_pairs = setting.upper().split(" ")
             used_characters = []
             valid_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            self.stecker_setting = {}
             for pair in stecker_pairs:
                 if (pair[0] in used_characters) or (pair[1] in used_characters):
                     raise SteckerSettingsInvalid
@@ -310,7 +310,7 @@ class Enigma(object):
 
     def __init__(self,
                  catalog: dict[str, Any] | str = "default",
-                 stecker: str | Sequence[str] = "ZZZ",
+                 stecker: str | None = None,
                  stator="military",
                  rotors: Sequence[Sequence[str]] = (
                         ("I", 'A'), ("II", 'A'), ("III", 'A')
@@ -319,7 +319,6 @@ class Enigma(object):
                  operator: bool | Operator = True,
                  word_length=5,
                  ignore_static_wheels=False):
-        stecker = ''.join(stecker)
         self.stecker = Stecker(setting=stecker)
         self.stator = Stator(mode=stator)
         # We want to _copy_ values for rotors, as original might be mutable.
