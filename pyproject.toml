@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name="python_enigma"
+version="1.3.1"
+requires-python = ">= 3.6"
+authors= [
+    {name="Zachary Adam-MacEwen"},
+    ]
+maintainers = [
+    {name="Jeffrey P Goldberg", email="jeffrey@goldmark.org"},
+    ]
+description="A simple module which adds Enigma Machine-emulating functionality to your python projects."
+readme = "README.md"
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+
+  "Intended Audience :: Developers",
+  "Intended Audience :: Education",
+
+  "License :: OSI Approved :: Apache Software License",
+
+  "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://github.com/ZAdamMac/python-enigma/"
+Changelog = "https://github.com/ZAdamMac/python-enigma/blob/master/CHANGELOG.md"
+Repository = "https://github.com/ZAdamMac/python-enigma.git"
+
