@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-Transitioning project management from [Zachary Adam-MacEwen](https://github.com/ZAdamMac) to [Jeffrey P Goldberg](https://github.com/jpgoldberg).
+- Transitioning project management from [Zachary Adam-MacEwen](https://github.com/ZAdamMac) to [Jeffrey P Goldberg](https://github.com/jpgoldberg).
+
+- The `main` function (which was an incomplete work in progress) is officially deprecated.
+
 
 ### Fixed
 

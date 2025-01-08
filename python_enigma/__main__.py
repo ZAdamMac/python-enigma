@@ -16,8 +16,11 @@ Development was by Zac Adam-MacEwen. See the README.md for details.
 
 """
 
-__version__ = "1.2.0Dev"
-
+import sys
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 from . import enigma
 from tkinter import *
 import webbrowser
@@ -113,10 +116,11 @@ def launch_github():
     return
 
 
-if __name__ == "__main__":
+@deprecated("The incomplete interactive module will be removed in the near future.")
+def main():
     machine_used = initialize_stock_enigma()
     window = Tk()
-    window.title("Python Enigma v.%s" % __version__)
+    window.title("Python Enigma v.%s" % enigma.__version__)
     # this code block draws the window itself.
     input_pane = LabelFrame(window, text="Input")
     input_pane.grid(column=0, row=0)
@@ -173,3 +177,7 @@ if __name__ == "__main__":
     credits_button.grid(row=2)
 
     window.mainloop()
+
+
+if __name__ == "__main__":
+    main()
