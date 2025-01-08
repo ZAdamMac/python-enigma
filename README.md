@@ -1,4 +1,4 @@
-# python-enigma: Engima Machines, But With Python
+# python-enigma: Enigma Machines, But With Python
 
 This project introduces a package, python_enigma, with an `enigma` module which can be imported and used to include Enigma-Machine-like encryption to your python project. Also included is a simplistic "Hello World" proof of concept, a basic catalogue of rotors in the JSON format expected (`catalogue.json`), and a convenience script for preparing the catalogue from a csv.
 
