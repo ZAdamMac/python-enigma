@@ -33,18 +33,15 @@ class SteckerSettingsInvalid(Exception):
 
 
 class UndefinedStatorError(Exception):
-    """Raised if the stator mode string is not a defined stator type
-    """
+    """Raised if the stator mode string is not a defined stator type"""
 
 
 class RotorNotFound(Exception):
-    """Raised if the rotor requested is not found in the catalogue
-    """
+    """Raised if the rotor requested is not found in the catalogue"""
 
 
 class ReflectorNotFound(Exception):
-    """Raised if the refelctor requested is not found in the catalogue
-    """
+    """Raised if the refelctor requested is not found in the catalogue"""
 
 
 class Stecker(object):
@@ -58,7 +55,7 @@ class Stecker(object):
 
     def __init__(self, setting):
         """Accepts a string of space-seperated letter pairs denoting stecker
-         settings, deduplicates them and grants the object its properties.
+        settings, deduplicates them and grants the object its properties.
         """
         self.stecker_setting: dict[str, str] = {}
         if setting is not None:
@@ -75,8 +72,7 @@ class Stecker(object):
                     self.stecker_setting[pair[1]] = pair[0]
 
     def steck(self, char):
-        """Accepts a character and parses it through the stecker board.
-        """
+        """Accepts a character and parses it through the stecker board."""
         if char.upper() in self.stecker_setting:
             return self.stecker_setting[char]
         else:
@@ -107,17 +103,61 @@ class Stator(object):
         self.mode = mode
         if mode == "civilian":
             self.stator_settings = {
-                "Q": 1, "W": 2, "E": 3, "R": 4, "T": 5, "Z": 6, "U": 7, "I": 8,
-                "O": 9, "P": 10, "A": 11, "S": 12, "D": 13, "F": 14, "G": 15,
-                "H": 16, "J": 17, "K": 18, "L": 19, "Y": 20, "X": 21, "C": 22,
-                "V": 23, "B": 24, "N": 25, "M": 26,
+                "Q": 1,
+                "W": 2,
+                "E": 3,
+                "R": 4,
+                "T": 5,
+                "Z": 6,
+                "U": 7,
+                "I": 8,
+                "O": 9,
+                "P": 10,
+                "A": 11,
+                "S": 12,
+                "D": 13,
+                "F": 14,
+                "G": 15,
+                "H": 16,
+                "J": 17,
+                "K": 18,
+                "L": 19,
+                "Y": 20,
+                "X": 21,
+                "C": 22,
+                "V": 23,
+                "B": 24,
+                "N": 25,
+                "M": 26,
             }
         elif mode == "military":
             self.stator_settings = {
-                "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "H": 8,
-                "I": 9, "J": 10, "K": 11, "L": 12, "M": 13, "N": 14, "O": 15,
-                "P": 16, "Q": 17, "R": 18, "S": 19, "T": 20, "U": 21, "V": 22,
-                "W": 23, "X": 24, "Y": 25, "Z": 26,
+                "A": 1,
+                "B": 2,
+                "C": 3,
+                "D": 4,
+                "E": 5,
+                "F": 6,
+                "G": 7,
+                "H": 8,
+                "I": 9,
+                "J": 10,
+                "K": 11,
+                "L": 12,
+                "M": 13,
+                "N": 14,
+                "O": 15,
+                "P": 16,
+                "Q": 17,
+                "R": 18,
+                "S": 19,
+                "T": 20,
+                "U": 21,
+                "V": 22,
+                "W": 23,
+                "X": 24,
+                "Y": 25,
+                "Z": 26,
             }
         else:
             raise UndefinedStatorError
@@ -133,7 +173,7 @@ class Stator(object):
 
     def destat(self, signal):
         return self.destator[signal]
-    
+
     def __repr__(self):
         return f"Stator({self.mode!r})"
 
@@ -145,6 +185,7 @@ class Rotor(object):
 
     It's worth noting the reflector is also treated as a rotor.
     """
+
     def __init__(self, catalog, rotor_number, ringstellung, ignore_static):
         """Initialize the parameters of this individual rotor.
 
@@ -194,12 +235,14 @@ class Rotor(object):
             self.wiring_back[out_pin] = shifted_input
 
         if not ignore_static:
-            if "static" in description.keys():  # Issue 4: Bravo and Gamma rotor need to be static for m4
+            if (
+                "static" in description.keys()
+            ):  # Issue 4: Bravo and Gamma rotor need to be static for m4
                 if description["static"]:
                     self.static = True
                 else:
                     self.static = False
-    
+
     def __repr__(self):
         return f'Rotor("{self.catalog!r}", {self.name!r}", {self.ringstellung!r}, {self.ignore_static!r})'
 
@@ -210,6 +253,7 @@ class RotorMechanism(object):
     positions. You can process characters one at a time through this object's
     "process" method. Initial settings are passed with the "set" method.
     """
+
     def __init__(self, list_rotors, reflector):
         """Expects a list of rotors and a rotor object representing reflector"""
         self.rotors = list_rotors
@@ -232,10 +276,12 @@ class RotorMechanism(object):
         indexer = -1
         for rotor in self.rotors:
             indexer += 1
-            if rotor.position in rotor.notch:  # If a rotor is at its notch, the one on the left steps.
+            if (
+                rotor.position in rotor.notch
+            ):  # If a rotor is at its notch, the one on the left steps.
                 if rotor.step_me:
                     try:
-                        self.rotors[indexer+1].step_me = True
+                        self.rotors[indexer + 1].step_me = True
                     except IndexError:
                         pass
 
@@ -262,9 +308,10 @@ class RotorMechanism(object):
         output = next_bit
 
         return output
-    
+
     def __repr__(self):
         return f"RotorMechanism({self.rotors!r}, {self.reflector!r})"
+
 
 class Operator(object):
     """A special preparser that does some preformatting to the feed. This
@@ -281,10 +328,19 @@ class Operator(object):
         """Accepts a string as input and does some parsing to it."""
         cased_message = message.upper()
         message_characters = cased_message.replace(" ", "")
-        dict_replacement_characters = {".": "X", ":": "XX", ",": "ZZ", "?": "FRAQ",
-                                       "(": "KLAM", ")": "KLAM", """'""": "X"}
+        dict_replacement_characters = {
+            ".": "X",
+            ":": "XX",
+            ",": "ZZ",
+            "?": "FRAQ",
+            "(": "KLAM",
+            ")": "KLAM",
+            """'""": "X",
+        }
         for punct in dict_replacement_characters:
-            message_characters = message_characters.replace(punct, dict_replacement_characters[punct])
+            message_characters = message_characters.replace(
+                punct, dict_replacement_characters[punct]
+            )
 
         for character in message_characters:
             if character not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
@@ -292,11 +348,17 @@ class Operator(object):
 
         m = message_characters
         # This next step adds the spaces which cut the words up.
-        message_spaced = ' '.join([m[i:i+self.word_length] for i in range(0, len(message_characters), self.word_length)])
+        message_spaced = " ".join(
+            [
+                m[i : i + self.word_length]
+                for i in range(0, len(message_characters), self.word_length)
+            ]
+        )
         return message_spaced
 
     def __repr__(self) -> str:
         return f"Operator({self.word_length!r})"
+
 
 class Enigma(object):
     """A magic package that instantiates everything, allowing you to call your
@@ -308,17 +370,17 @@ class Enigma(object):
     - set: change various settings. See below.
     """
 
-    def __init__(self,
-                 catalog: dict[str, Any] | str = "default",
-                 stecker: str | None = None,
-                 stator="military",
-                 rotors: Sequence[Sequence[str]] = (
-                        ("I", 'A'), ("II", 'A'), ("III", 'A')
-                     ),
-                 reflector="UKW",
-                 operator: bool | Operator = True,
-                 word_length=5,
-                 ignore_static_wheels=False):
+    def __init__(
+        self,
+        catalog: dict[str, Any] | str = "default",
+        stecker: str | None = None,
+        stator="military",
+        rotors: Sequence[Sequence[str]] = (("I", "A"), ("II", "A"), ("III", "A")),
+        reflector="UKW",
+        operator: bool | Operator = True,
+        word_length=5,
+        ignore_static_wheels=False,
+    ):
         self.stecker = Stecker(setting=stecker)
         self.stator = Stator(mode=stator)
         # We want to _copy_ values for rotors, as original might be mutable.
@@ -342,10 +404,12 @@ class Enigma(object):
             rotor_object = Rotor(catalog, rotor_req, ringstellung, ignore_static_wheels)
             wheels.append(rotor_object)
         try:
-            reflector = Rotor(catalog,
-                              rotor_number=reflector,
-                              ringstellung="A",
-                              ignore_static=ignore_static_wheels)
+            reflector = Rotor(
+                catalog,
+                rotor_number=reflector,
+                ringstellung="A",
+                ignore_static=ignore_static_wheels,
+            )
         except RotorNotFound:
             raise ReflectorNotFound(reflector) from None
         self.wheel_pack = RotorMechanism(wheels, reflector=reflector)
@@ -370,8 +434,8 @@ class Enigma(object):
         """Accepts a string to be the new stecker board arrangement."""
         self.stecker = Stecker(setting=str(setting))
 
-    #def set_wheelpack(self, list_rotors):
-        #self.wheel_pack = RotorMechanism(list_rotors.reverse())
+    # def set_wheelpack(self, list_rotors):
+    # self.wheel_pack = RotorMechanism(list_rotors.reverse())
 
     def parse(self, message="Hello World"):
         if self.operator:
@@ -384,16 +448,20 @@ class Enigma(object):
             if character in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
                 stecked = self.stecker.steck(character)  # Keystroke - > Stecker
                 stated = self.stator.stat(stecked)  # Stecker -> Stator Wheel
-                polysubbed = self.wheel_pack.process(stated)  # Both ways through wheelpack, wheelpack steps forward.
-                destated = self.stator.destat(polysubbed)  # Backward through the stator wheel
+                polysubbed = self.wheel_pack.process(
+                    stated
+                )  # Both ways through wheelpack, wheelpack steps forward.
+                destated = self.stator.destat(
+                    polysubbed
+                )  # Backward through the stator wheel
                 lamp = self.stecker.steck(destated)  # Again through stecker
                 next_char = lamp
-            else: # Raised if an unformatted message contains special characters
+            else:  # Raised if an unformatted message contains special characters
                 next_char = character
             str_ciphertext += next_char
 
         return str_ciphertext
-    
+
     def __repr__(self):
         return f"""Enigma(catalog={self.catalog},
 stecker={self.stecker.__repr__()},
@@ -408,33 +476,101 @@ ignore_static_wheels={self.ignore_static_wheels})"""
 def alpha_to_index(char):
     """Takes a single character and converts it to a number where A=0"""
     translator = {
-                "A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5, "G": 6, "H": 7,
-                "I": 8, "J": 9, "K": 10, "L": 11, "M": 12, "N": 13, "O": 14,
-                "P": 15, "Q": 16, "R": 17, "S": 18, "T": 19, "U": 20, "V": 21,
-                "W": 22, "X": 23, "Y": 24, "Z": 25,
-            }
+        "A": 0,
+        "B": 1,
+        "C": 2,
+        "D": 3,
+        "E": 4,
+        "F": 5,
+        "G": 6,
+        "H": 7,
+        "I": 8,
+        "J": 9,
+        "K": 10,
+        "L": 11,
+        "M": 12,
+        "N": 13,
+        "O": 14,
+        "P": 15,
+        "Q": 16,
+        "R": 17,
+        "S": 18,
+        "T": 19,
+        "U": 20,
+        "V": 21,
+        "W": 22,
+        "X": 23,
+        "Y": 24,
+        "Z": 25,
+    }
     return translator[char.upper()]
 
 
 def alpha_to_num(char):
     """Takes a single character and converts it to a number where A=1"""
     translator = {
-                "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "H": 8,
-                "I": 9, "J": 10, "K": 11, "L": 12, "M": 13, "N": 14, "O": 15,
-                "P": 16, "Q": 17, "R": 18, "S": 19, "T": 20, "U": 21, "V": 22,
-                "W": 23, "X": 24, "Y": 25, "Z": 26,
-            }
+        "A": 1,
+        "B": 2,
+        "C": 3,
+        "D": 4,
+        "E": 5,
+        "F": 6,
+        "G": 7,
+        "H": 8,
+        "I": 9,
+        "J": 10,
+        "K": 11,
+        "L": 12,
+        "M": 13,
+        "N": 14,
+        "O": 15,
+        "P": 16,
+        "Q": 17,
+        "R": 18,
+        "S": 19,
+        "T": 20,
+        "U": 21,
+        "V": 22,
+        "W": 23,
+        "X": 24,
+        "Y": 25,
+        "Z": 26,
+    }
     return translator[char.upper()]
+
 
 def num_to_alpha(integ):
     """takes a numeral value and spits out the corresponding letter."""
     translator = {
-                1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F', 7: 'G', 8: 'H',
-                9: 'I', 10: 'J', 11: 'K', 12: 'L', 13: 'M', 14: 'N', 15: 'O',
-                16: 'P', 17: 'Q', 18: 'R', 19: 'S', 20: 'T', 21: 'U', 22: 'V',
-                23: 'W', 24: 'X', 25: 'Y', 26: 'Z'
-                }
+        1: "A",
+        2: "B",
+        3: "C",
+        4: "D",
+        5: "E",
+        6: "F",
+        7: "G",
+        8: "H",
+        9: "I",
+        10: "J",
+        11: "K",
+        12: "L",
+        13: "M",
+        14: "N",
+        15: "O",
+        16: "P",
+        17: "Q",
+        18: "R",
+        19: "S",
+        20: "T",
+        21: "U",
+        22: "V",
+        23: "W",
+        24: "X",
+        25: "Y",
+        26: "Z",
+    }
     return translator[integ]
+
 
 def map_faces(rotor):
     """Are you ready for bad entry pinning mapping?"""
@@ -451,4 +587,3 @@ def map_faces(rotor):
         pos += 1
 
     return neutral_to_pins, pins_to_neutral
-

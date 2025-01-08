@@ -15,7 +15,7 @@ with open("table_rotors.csv", "r") as file:
             binding = enigma.alpha_to_num(character.upper())
             new_entry = {counter: binding}
             bindings_dict.update(new_entry)
-            counter+=1
+            counter += 1
         notch = line[2]
 
         catalogue.update({rotor_label: {"wiring": bindings_dict, "notch": notch}})
