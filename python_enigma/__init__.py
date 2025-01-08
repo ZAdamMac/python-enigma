@@ -1,3 +1,3 @@
-__version__ = "1.2devSomething"
+__version__ = "1.3.1"
 
 from .enigma import *
