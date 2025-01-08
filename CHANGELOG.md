@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+`main` is gone.
+
 ## 1.1.4 2025-01-08
 
 ### Changed
