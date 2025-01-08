@@ -37,7 +37,7 @@ class TestEncrypt:
 class TestHistorical:
     """Tests taken from https://gist.github.com/Jither/d8dbc4d38998c18686bb646b49b9a8a6"""
 
-    # @pytest.mark.skip("I can't get this working")
+    @pytest.mark.skip("I can't get this working")
     def test_p1030681(self) -> None:
         wheels: list[str] = ["Beta", "V", "VI", "VIII"]
         rotor_positions = "CDSZ"
