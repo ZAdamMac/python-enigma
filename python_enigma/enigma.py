@@ -27,28 +27,6 @@ from collections.abc import Mapping, Sequence
 import importlib.resources as ir
 import python_enigma.resources
 
-default_catalogue_file = ir.files(python_enigma.resources).joinpath("catalogue.json")
-
-
-class Catalog(UserDict):
-    """
-    This class will eventually be a dict of rotors,
-    but the Rotor class needs to be modified before that happens.
-    So in the current version this just has the load default method.
-    """
-
-    default_data: Optional[Mapping[str, Any]] = None
-
-    @classmethod
-    def default(cls) -> Mapping[str, Any]:
-        """Returns the default catalogue."""
-        if cls.default_data is None:
-            with default_catalogue_file.open("r") as f:
-                cls.default_data = json.load(f)
-        
-        assert cls.default_data is not None
-        return cls.default_data
-
 
 class SteckerSettingsInvalid(Exception):
     """Raised if the stecker doesn't like its settings - either a duplicated
@@ -66,6 +44,30 @@ class RotorNotFound(Exception):
 
 class ReflectorNotFound(Exception):
     """Raised if the reflector requested is not found in the catalogue"""
+
+
+class Catalog(UserDict):
+    """
+    This class will eventually be a dict of rotors,
+    but the Rotor class needs to be modified before that happens.
+    So in the current version this just has the load default method.
+    """
+
+    CATALOG_FILE_NAME = "catalogue.json"
+    CATALOG_FILE_DIR = ir.files(python_enigma.resources)
+    CATALOG_FILE_PATH = CATALOG_FILE_DIR.joinpath(CATALOG_FILE_NAME)
+
+    default_data: Optional[Mapping[str, Any]] = None
+
+    @classmethod
+    def default(cls) -> Mapping[str, Any]:
+        """Returns the default catalogue."""
+        if cls.default_data is None:
+            with cls.CATALOG_FILE_PATH.open("r") as f:
+                cls.default_data = json.load(f)
+
+        assert cls.default_data is not None
+        return cls.default_data
 
 
 class Stecker(object):
@@ -127,62 +129,18 @@ class Stator(object):
         self.mode = mode
         if mode == "civilian":
             self.stator_settings = {
-                "Q": 1,
-                "W": 2,
-                "E": 3,
-                "R": 4,
-                "T": 5,
-                "Z": 6,
-                "U": 7,
-                "I": 8,
-                "O": 9,
-                "P": 10,
-                "A": 11,
-                "S": 12,
-                "D": 13,
-                "F": 14,
-                "G": 15,
-                "H": 16,
-                "J": 17,
-                "K": 18,
-                "L": 19,
-                "Y": 20,
-                "X": 21,
-                "C": 22,
-                "V": 23,
-                "B": 24,
-                "N": 25,
-                "M": 26,
-            }
+                "Q": 1, "W": 2, "E": 3, "R": 4, "T": 5, "Z": 6, "U": 7,
+                "I": 8, "O": 9, "P": 10, "A": 11, "S": 12, "D": 13, "F": 14, "G": 15, "H": 16, "J": 17, "K": 18, "L": 19, "Y": 20, "X": 21,
+                "C": 22, "V": 23, "B": 24, "N": 25, "M": 26,
+            }  # fmt: skip
         elif mode == "military":
             self.stator_settings = {
-                "A": 1,
-                "B": 2,
-                "C": 3,
-                "D": 4,
-                "E": 5,
-                "F": 6,
-                "G": 7,
-                "H": 8,
-                "I": 9,
-                "J": 10,
-                "K": 11,
-                "L": 12,
-                "M": 13,
-                "N": 14,
-                "O": 15,
-                "P": 16,
-                "Q": 17,
-                "R": 18,
-                "S": 19,
-                "T": 20,
-                "U": 21,
-                "V": 22,
-                "W": 23,
-                "X": 24,
-                "Y": 25,
-                "Z": 26,
-            }
+                "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6,
+                "G": 7, "H": 8, "I": 9, "J": 10, "K": 11, "L": 12,
+                "M": 13, "N": 14, "O": 15, "P": 16, "Q": 17, "R": 18,
+                "S": 19, "T": 20, "U": 21, "V": 22, "W": 23, "X": 24,
+                "Y": 25, "Z": 26,
+                }  # fmt: skip
         else:
             raise UndefinedStatorError
 

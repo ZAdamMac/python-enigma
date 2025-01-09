@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-`main` is gone.
+- Reorganization of where individual files live in the package.
+- Minimum Python version is 3.9 (for [`importlib.resources`](https://docs.python.org/3/library/importlib.resources.html#importlib.resources.files))
+- `helloworld.py` example moved to `docs/Examples` (though is likely to be moved again later)
+
+- `main` is gone.
 
 ### Added
 
 - `Catalog.default()` returns a dict with data from `catalogue.json`
+- The `python_enigma.resources` "package" now exists for use with `importlib.resources`
+- A mostly empty `docs` directory. But it is a start.
 
 ## 1.1.4 2025-01-08
 
