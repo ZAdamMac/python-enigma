@@ -392,13 +392,16 @@ class Enigma(object):
         except RotorNotFound:
             raise ReflectorNotFound(reflector) from None
         self.wheel_pack = RotorMechanism(wheels, reflector=reflector)
-        if operator:
-            if isinstance(operator, Operator):
-                self.operator = operator(word_length)
-            else:
-                self.operator = Operator(word_length)
-        else:
-            self.operator = False
+
+        # For backwards compatibility, the operator parameter has two very
+        # different meanings depending on type. But we will make self.operator
+        # more sensible.
+        self.operator: Optional[Operator] = None
+
+        if isinstance(operator, Operator):
+            self.operator = operator
+        elif operator:  # It's a bool
+            self.operator = Operator(word_length)
 
     def set_wheels(self, setting):
         """Accepts a string that is the new pack setting, e.g. ABQ"""
@@ -448,7 +451,7 @@ stator={self.stator.__repr__()},
 rotors={self.rotor_names},
 reflector={self.reflector_name},
 operator={self.operator_param},
-word_length={self.operator.word_length},
+word_length={self.operator.word_length if self.operator else 'NA'},
 ignore_static_wheels={self.ignore_static_wheels})"""
 
 
