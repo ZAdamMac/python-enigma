@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 `main` is gone.
 
+### Added
+
+- `Catalog.default()` returns a dict with data from `catalogue.json`
+
 ## 1.1.4 2025-01-08
 
 ### Changed

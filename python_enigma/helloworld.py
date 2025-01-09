@@ -1,10 +1,6 @@
 """This is a simple example hello-world script for using this engima module."""
 
 from python_enigma import enigma
-import json
-
-with open("catalogue.json", "r") as file:
-    all_wheels = json.load(file)
 
 use_these = [("I", "A"), ("II", "B"), ("III", "C")]
 machine = enigma.Enigma(

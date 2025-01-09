@@ -20,10 +20,34 @@ Development was by Zac Adam-MacEwen. See the README.md for details.
 """
 
 # General Purpose Imports Block
+from collections import UserDict
 import json
-import os
-from typing import Any
-from collections.abc import Sequence
+from typing import Any, Optional
+from collections.abc import Mapping, Sequence
+import importlib.resources as ir
+import python_enigma.resources
+
+default_catalogue_file = ir.files(python_enigma.resources).joinpath("catalogue.json")
+
+
+class Catalog(UserDict):
+    """
+    This class will eventually be a dict of rotors,
+    but the Rotor class needs to be modified before that happens.
+    So in the current version this just has the load default method.
+    """
+
+    default_data: Optional[Mapping[str, Any]] = None
+
+    @classmethod
+    def default(cls) -> Mapping[str, Any]:
+        """Returns the default catalogue."""
+        if cls.default_data is None:
+            with default_catalogue_file.open("r") as f:
+                cls.default_data = json.load(f)
+        
+        assert cls.default_data is not None
+        return cls.default_data
 
 
 class SteckerSettingsInvalid(Exception):
@@ -41,7 +65,7 @@ class RotorNotFound(Exception):
 
 
 class ReflectorNotFound(Exception):
-    """Raised if the refelctor requested is not found in the catalogue"""
+    """Raised if the reflector requested is not found in the catalogue"""
 
 
 class Stecker(object):
@@ -286,7 +310,7 @@ class RotorMechanism(object):
                         pass
 
         for rotor in self.rotors:
-            if not rotor.static:  # Edge Case: The M4 B and C rotors do not rotate.
+            if not rotor.static:  # Edge Case: The M4 B & C rotors don't rotate.
                 if rotor.step_me:
                     rotor.step_me = False  # We gonna step now.
                     rotor.position += 1
@@ -372,7 +396,7 @@ class Enigma(object):
 
     def __init__(
         self,
-        catalog: dict[str, Any] | str = "default",
+        catalog: Mapping[str, Any] | str = "default",
         stecker: str | None = None,
         stator="military",
         rotors: Sequence[Sequence[str]] = (("I", "A"), ("II", "A"), ("III", "A")),
@@ -391,10 +415,7 @@ class Enigma(object):
         # We have to reverse the rotors as we insert them because the signal
         # originates at the right-hand edge of the wheelpack.
         if catalog == "default":
-            resource_dir = os.path.split(__file__)[0]
-            path_to_default_catalog = os.path.join(resource_dir, "catalogue.json")
-            with open(path_to_default_catalog, "r") as file:
-                catalog = json.load(file)
+            catalog = Catalog.default()
         self.catalog = catalog
         wheels = []
         rotors = rotors[::-1]  # reverse the tuple
