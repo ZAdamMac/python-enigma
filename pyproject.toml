@@ -12,7 +12,7 @@ authors= [
 maintainers = [
     {name="Jeffrey P Goldberg", email="jeffrey@goldmark.org"},
     ]
-description="A simple module which adds Enigma Machine-emulating functionality to your python projects."
+description="A package which adds Enigma Machine-emulating functionality"
 readme = "README.md"
 
 classifiers = [
@@ -24,6 +24,12 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License",
 
   "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+
+  "Topic :: Security :: Cryptography",
+  "Topic :: Sociology :: History",
+
+  "Typing :: Typed",
 ]
 
 [project.urls]

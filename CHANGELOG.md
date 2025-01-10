@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Package has complete type annotations.
 - `Catalog.default()` returns a dict with data from `catalogue.json`
 - The `python_enigma.resources` "package" now exists for use with `importlib.resources`
 - A mostly empty `docs` directory. But it is a start.
