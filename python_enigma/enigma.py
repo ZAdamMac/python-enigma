@@ -46,7 +46,7 @@ class ReflectorNotFound(Exception):
     """Raised if the reflector requested is not found in the catalogue"""
 
 
-class Catalog(UserDict):
+class Catalog(UserDict[str, object]):
     """
     This class will eventually be a dict of rotors,
     but the Rotor class needs to be modified before that happens.
@@ -60,14 +60,13 @@ class Catalog(UserDict):
     default_data: Optional[Mapping[str, Any]] = None
 
     @classmethod
-    def default(cls) -> Mapping[str, Any]:
+    def default(cls) -> 'Catalog':
         """Returns the default catalogue."""
         if cls.default_data is None:
             with cls.CATALOG_FILE_PATH.open("r") as f:
                 cls.default_data = json.load(f)
 
-        assert cls.default_data is not None
-        return cls.default_data
+        return Catalog(cls.default_data)
 
 
 class Stecker(object):
@@ -79,14 +78,14 @@ class Stecker(object):
     This stecker provides a method "steck" which performs the substitution.
     """
 
-    def __init__(self, setting):
-        """Accepts a string of space-seperated letter pairs denoting stecker
+    def __init__(self, setting: Optional[str]) -> None:
+        """Accepts a string of space-separated letter pairs denoting stecker
         settings, deduplicates them and grants the object its properties.
         """
         self.stecker_setting: dict[str, str] = {}
         if setting is not None:
             stecker_pairs = setting.upper().split(" ")
-            used_characters = []
+            used_characters: list[str] = []
             valid_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
             for pair in stecker_pairs:
                 if (pair[0] in used_characters) or (pair[1] in used_characters):
@@ -97,14 +96,14 @@ class Stecker(object):
                     self.stecker_setting[pair[0]] = pair[1]
                     self.stecker_setting[pair[1]] = pair[0]
 
-    def steck(self, char):
+    def steck(self, char: str) -> str:
         """Accepts a character and parses it through the stecker board."""
         if char.upper() in self.stecker_setting:
             return self.stecker_setting[char]
         else:
             return char  # Un-jumped characters should be returned as is.
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         settings = []
         for fromchar, tochar in self.stecker_setting.items():
             if tochar + fromchar not in settings:
@@ -121,7 +120,7 @@ class Stator(object):
     "destat" to do the same in reverse.
     """
 
-    def __init__(self, mode):
+    def __init__(self, mode: str) -> None:
         """The stator mode is a string which states which stator to use. As
         currently implemented the options are "civilian" or "military"
         """
@@ -144,19 +143,19 @@ class Stator(object):
         else:
             raise UndefinedStatorError
 
-        self.destator = {}
+        self.destator: dict[int, str] = {}
         for key in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
             reflected = self.stator_settings[key]
             self.destator[reflected] = key
 
-    def stat(self, char):
+    def stat(self, char: str) -> int:
         char = char.upper()
         return self.stator_settings[char]
 
-    def destat(self, signal):
+    def destat(self, signal: int) -> str:
         return self.destator[signal]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Stator({self.mode!r})"
 
 
@@ -168,11 +167,18 @@ class Rotor(object):
     It's worth noting the reflector is also treated as a rotor.
     """
 
-    def __init__(self, catalog, rotor_number, ringstellung, ignore_static):
+    def __init__(
+        self,
+        catalog: Catalog,
+        rotor_number: str,
+        ringstellung: str,
+        ignore_static: bool,
+    ):
         """Initialize the parameters of this individual rotor.
 
         :param catalog: A dictionary describing all rotors available.
-        :param rotor_number: A rotor descriptor which can be found as a key in catalog
+        :param rotor_number:
+            A rotor descriptor which can be found as a key in catalog
         :param ringstellung: The desired offset letter as a string.
         """
         self.name = rotor_number
@@ -184,19 +190,19 @@ class Rotor(object):
             description = catalog[rotor_number]
         else:
             raise RotorNotFound(rotor_number)
-        if ringstellung is None:
-            self.ringstellung = "A"
-        else:
-            self.ringstellung = ringstellung
-        ringstellung = alpha_to_num(self.ringstellung.upper())
+
+        self.ringstellung: int = alpha_to_num("A")
+        if ringstellung is not None:
+            self.ringstellung = alpha_to_num(ringstellung.upper())
 
         # Extremely nasty ringstellung implementation follows.
-        # For this to work, ringstellung needs to be a number, rather than an index.
+        # For this to work, ringstellung needs to be a number,
+        # rather than an index.
 
-        ringstellunged_to_keys = {}  # Gives the ringstellung offset for entry pins.
-        pins_to_ringstellunged = {}  # Gives the ringstellung offset for exit pins.
+        ringstellunged_to_keys = {}  # ringstellung offset for entry pins.
+        pins_to_ringstellunged = {}  # ringstellung offset for exit pins.
 
-        pos = ringstellung
+        pos = self.ringstellung
         for i in range(1, 27):
             if pos > 26:
                 pos -= 26
@@ -356,13 +362,13 @@ class Enigma(object):
         self,
         catalog: Mapping[str, Any] | str = "default",
         stecker: str | None = None,
-        stator="military",
+        stator: str = "military",
         rotors: Sequence[Sequence[str]] = (("I", "A"), ("II", "A"), ("III", "A")),
-        reflector="UKW",
+        reflector: str = "UKW",
         operator: bool | Operator = True,
-        word_length=5,
-        ignore_static_wheels=False,
-    ):
+        word_length: int = 5,
+        ignore_static_wheels: bool = False,
+    ) -> None:
         self.stecker = Stecker(setting=stecker)
         self.stator = Stator(mode=stator)
         # We want to _copy_ values for rotors, as original might be mutable.
@@ -383,15 +389,15 @@ class Enigma(object):
             rotor_object = Rotor(catalog, rotor_req, ringstellung, ignore_static_wheels)
             wheels.append(rotor_object)
         try:
-            reflector = Rotor(
-                catalog,
+            reflector_rotor = Rotor(
+                self.catalog,
                 rotor_number=reflector,
                 ringstellung="A",
                 ignore_static=ignore_static_wheels,
             )
         except RotorNotFound:
             raise ReflectorNotFound(reflector) from None
-        self.wheel_pack = RotorMechanism(wheels, reflector=reflector)
+        self.wheel_pack = RotorMechanism(wheels, reflector=reflector_rotor)
 
         # For backwards compatibility, the operator parameter has two very
         # different meanings depending on type. But we will make self.operator
@@ -455,7 +461,7 @@ word_length={self.operator.word_length if self.operator else 'NA'},
 ignore_static_wheels={self.ignore_static_wheels})"""
 
 
-def alpha_to_index(char):
+def alpha_to_index(char: str) -> int:
     """Takes a single character and converts it to a number where A=0"""
     translator = {
         "A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5,
@@ -467,7 +473,7 @@ def alpha_to_index(char):
     return translator[char.upper()]
 
 
-def alpha_to_num(char):
+def alpha_to_num(char: str) -> int:
     """Takes a single character and converts it to a number where A=1"""
     translator = {
         "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6,
@@ -479,7 +485,7 @@ def alpha_to_num(char):
     return translator[char.upper()]
 
 
-def num_to_alpha(integ):
+def num_to_alpha(integ: int) -> str:
     """takes a numeral value and spits out the corresponding letter."""
     translator = {
         1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "F",
