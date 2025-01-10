@@ -22,10 +22,11 @@ Development was by Zac Adam-MacEwen. See the README.md for details.
 # General Purpose Imports Block
 from collections import UserDict
 import json
-from typing import Any, Optional, TypedDict
+from typing import Any, Optional
 from collections.abc import Mapping, Sequence
 import importlib.resources as ir
 import python_enigma.resources
+from python_enigma.types import Char, RotorSpec
 
 
 class SteckerSettingsInvalid(Exception):
@@ -44,13 +45,6 @@ class RotorNotFound(Exception):
 
 class ReflectorNotFound(Exception):
     """Raised if the reflector requested is not found in the catalogue"""
-
-
-class RotorSpec(TypedDict):
-    name: str
-    wiring: dict[str, int]
-    notch: str
-    static: bool
 
 
 class Catalog(UserDict[str, RotorSpec]):
@@ -95,10 +89,10 @@ class Stecker:
         """Accepts a string of space-separated letter pairs denoting stecker
         settings, deduplicates them and grants the object its properties.
         """
-        self.stecker_setting: dict[str, str] = {}
+        self.stecker_setting: dict[Char, Char] = {}
         if setting is not None:
             stecker_pairs = setting.upper().split(" ")
-            used_characters: list[str] = []
+            used_characters: list[Char] = []
             valid_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
             for pair in stecker_pairs:
                 if (pair[0] in used_characters) or (pair[1] in used_characters):
@@ -106,10 +100,12 @@ class Stecker:
                 elif (pair[0] not in valid_chars) or (pair[1] not in valid_chars):
                     raise SteckerSettingsInvalid
                 else:
-                    self.stecker_setting[pair[0]] = pair[1]
-                    self.stecker_setting[pair[1]] = pair[0]
+                    p0 = Char(pair[0])
+                    p1 = Char(pair[1])
+                    self.stecker_setting[p0] = p1
+                    self.stecker_setting[p1] = p0
 
-    def steck(self, char: str) -> str:
+    def steck(self, char: Char) -> Char:
         """Accepts a character and parses it through the stecker board."""
         if char.upper() in self.stecker_setting:
             return self.stecker_setting[char]
@@ -139,14 +135,15 @@ class Stator:
         """
         mode = mode.lower()
         self.mode = mode
+        stator_settings: dict[str, int]
         if mode == "civilian":
-            self.stator_settings = {
+            stator_settings = {
                 "Q": 1, "W": 2, "E": 3, "R": 4, "T": 5, "Z": 6, "U": 7,
                 "I": 8, "O": 9, "P": 10, "A": 11, "S": 12, "D": 13, "F": 14, "G": 15, "H": 16, "J": 17, "K": 18, "L": 19, "Y": 20, "X": 21,
                 "C": 22, "V": 23, "B": 24, "N": 25, "M": 26,
             }  # fmt: skip
         elif mode == "military":
-            self.stator_settings = {
+            stator_settings = {
                 "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6,
                 "G": 7, "H": 8, "I": 9, "J": 10, "K": 11, "L": 12,
                 "M": 13, "N": 14, "O": 15, "P": 16, "Q": 17, "R": 18,
@@ -156,16 +153,17 @@ class Stator:
         else:
             raise UndefinedStatorError
 
-        self.destator: dict[int, str] = {}
-        for key in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-            reflected = self.stator_settings[key]
-            self.destator[reflected] = key
+        self.stator_settings: dict[Char, int] = {
+            Char(c): n for c, n in stator_settings.items()
+        }
 
-    def stat(self, char: str) -> int:
-        char = char.upper()
+        self.destator: dict[int, Char] = {n: c for c, n in self.stator_settings.items()}
+
+    def stat(self, char: Char) -> int:
+        char = Char(char.upper())
         return self.stator_settings[char]
 
-    def destat(self, signal: int) -> str:
+    def destat(self, signal: int) -> Char:
         return self.destator[signal]
 
     def __repr__(self) -> str:
@@ -204,9 +202,9 @@ class Rotor:
         else:
             raise RotorNotFound(rotor_number)
 
-        self.ringstellung: int = alpha_to_num("A")
+        self.ringstellung: int = alpha_to_num(Char("A"))
         if ringstellung is not None:
-            self.ringstellung = alpha_to_num(ringstellung.upper())
+            self.ringstellung = alpha_to_num(Char(ringstellung.upper()))
 
         self.position: int
 
@@ -227,7 +225,7 @@ class Rotor:
 
         self.notch = []
         for position in description["notch"]:
-            self.notch.append(alpha_to_index(position))
+            self.notch.append(alpha_to_index(Char(position)))
         self.wiring = {}
         self.wiring_back = {}
 
@@ -264,7 +262,7 @@ class RotorMechanism:
             rotor.position = 1
         self.reflector = reflector
 
-    def set(self, rotor_slot: int, setting: str) -> None:
+    def set(self, rotor_slot: int, setting: Char) -> None:
         """Expects a python-indexed rotor and a character for a setting"""
         self.rotors[rotor_slot].position = alpha_to_index(setting)
 
@@ -432,9 +430,9 @@ class Enigma:
 
     def set_wheels(self, setting: str) -> None:
         """Accepts a string that is the new pack setting, e.g. ABQ"""
-        physical_setting = []
+        physical_setting: list[Char] = []
         for char in setting:
-            physical_setting.append(char.upper())
+            physical_setting.append(Char(char.upper()))
         physical_setting.reverse()
         for i in range(0, len(physical_setting)):
             self.wheel_pack.set(i, physical_setting[i])
@@ -454,6 +452,7 @@ class Enigma:
 
         str_ciphertext = ""
         for character in str_message:
+            character = Char(character)
             if character in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
                 stecked = self.stecker.steck(character)  # Keystroke - > Stecker
                 stated = self.stator.stat(stecked)  # Stecker -> Stator Wheel
@@ -482,7 +481,7 @@ word_length={self.operator.word_length if self.operator else 'NA'},
 ignore_static_wheels={self.ignore_static_wheels})"""
 
 
-def alpha_to_index(char: str) -> int:
+def alpha_to_index(char: Char) -> int:
     """Takes a single character and converts it to a number where A=0"""
     translator = {
         "A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5,
@@ -494,7 +493,7 @@ def alpha_to_index(char: str) -> int:
     return translator[char.upper()]
 
 
-def alpha_to_num(char: str) -> int:
+def alpha_to_num(char: Char) -> int:
     """Takes a single character and converts it to a number where A=1"""
     translator = {
         "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6,

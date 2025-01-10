@@ -1,6 +1,7 @@
 import csv
 import json
 from python_enigma import enigma
+from python_enigma.types import Char
 
 catalogue = {}
 
@@ -11,13 +12,20 @@ with open("table_rotors.csv", "r") as file:
         bindings_dict = {}
         counter = 1
         for character in line[1]:
-            binding = enigma.alpha_to_num(character.upper())
+            binding = enigma.alpha_to_num(Char(character.upper()))
             new_entry = {counter: binding}
             bindings_dict.update(new_entry)
             counter += 1
         notch = line[2]
 
-        catalogue.update({rotor_label: {"wiring": bindings_dict, "notch": notch}})
+        catalogue.update(
+            {
+                rotor_label: {
+                    "wiring": bindings_dict,
+                    "notch": notch,
+                }
+            }
+        )
 
 with open("catalogue.json", "w") as out:
     json.dump(catalogue, out)
