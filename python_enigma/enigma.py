@@ -160,7 +160,7 @@ class Stator:
         self.destator: dict[int, Char] = {n: c for c, n in self.stator_settings.items()}
 
     def stat(self, char: Char) -> int:
-        char = Char(char.upper())
+        char = char.upper()
         return self.stator_settings[char]
 
     def destat(self, signal: int) -> Char:
@@ -204,7 +204,8 @@ class Rotor:
 
         self.ringstellung: int = alpha_to_num(Char("A"))
         if ringstellung is not None:
-            self.ringstellung = alpha_to_num(Char(ringstellung.upper()))
+            ringstellung = Char(ringstellung)
+            self.ringstellung = alpha_to_num(ringstellung.upper())
 
         self.position: int
 
@@ -432,7 +433,8 @@ class Enigma:
         """Accepts a string that is the new pack setting, e.g. ABQ"""
         physical_setting: list[Char] = []
         for char in setting:
-            physical_setting.append(Char(char.upper()))
+            char = Char(char)
+            physical_setting.append(char.upper())
         physical_setting.reverse()
         for i in range(0, len(physical_setting)):
             self.wheel_pack.set(i, physical_setting[i])

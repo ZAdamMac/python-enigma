@@ -1,6 +1,6 @@
 """This is where we put types and type-like classes"""
 
-from typing import NewType, TypedDict
+from typing import TypedDict
 
 
 class RotorSpec(TypedDict):
@@ -12,8 +12,15 @@ class RotorSpec(TypedDict):
     static: bool
 
 
-Char = NewType("Char", str)
-"""Intended to indicate single ASCII character.
+class Char(str):
+    """Intended to indicate single ASCII character.
 
-Note that the the intention is not enforced.
-"""
+    This also implements type preserving ``upper`` and ``lower``,
+    but think of this as a type instead of a full-blown class.
+    """
+
+    def upper(self) -> "Char":
+        return Char(super().upper())
+
+    def lower(self) -> "Char":
+        return Char(super().lower())
