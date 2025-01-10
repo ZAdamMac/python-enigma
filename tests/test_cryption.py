@@ -152,7 +152,7 @@ class TestOperatorIssue:
 class TestDefault:
     """Test that defaults work."""
 
-    WORKING_ARGS: Mapping[str, str | Sequence | bool | int] = {
+    WORKING_ARGS: Mapping[str, str | Sequence[Sequence[str]] | bool | int] = {
         "catalog": "default",
         "stator": "military",
         "stecker": "AQ BJ",

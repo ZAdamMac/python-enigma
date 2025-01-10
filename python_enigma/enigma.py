@@ -22,7 +22,7 @@ Development was by Zac Adam-MacEwen. See the README.md for details.
 # General Purpose Imports Block
 from collections import UserDict
 import json
-from typing import Any, Optional
+from typing import Any, NotRequired, Optional, TypedDict
 from collections.abc import Mapping, Sequence
 import importlib.resources as ir
 import python_enigma.resources
@@ -46,7 +46,14 @@ class ReflectorNotFound(Exception):
     """Raised if the reflector requested is not found in the catalogue"""
 
 
-class Catalog(UserDict[str, object]):
+class RotorSpec(TypedDict):
+    name: NotRequired[str]
+    wiring: dict[str, int]
+    notch: str
+    static: NotRequired[bool]
+
+
+class Catalog(UserDict[str, RotorSpec]):
     """
     This class will eventually be a dict of rotors,
     but the Rotor class needs to be modified before that happens.
@@ -60,7 +67,7 @@ class Catalog(UserDict[str, object]):
     default_data: Optional[Mapping[str, Any]] = None
 
     @classmethod
-    def default(cls) -> 'Catalog':
+    def default(cls) -> "Catalog":
         """Returns the default catalogue."""
         if cls.default_data is None:
             with cls.CATALOG_FILE_PATH.open("r") as f:
@@ -69,7 +76,7 @@ class Catalog(UserDict[str, object]):
         return Catalog(cls.default_data)
 
 
-class Stecker(object):
+class Stecker:
     """A class implementation of the stecker. The stecker board was a set of
     junctions which could rewire both the lamps and keys for letters in a
     pairwise fashion. This formed a sort of double-substitution step. The
@@ -111,7 +118,7 @@ class Stecker(object):
         return f'Stecker("{" ".join(settings)}")'
 
 
-class Stator(object):
+class Stator:
     """The stator was the first "wheel" of the enigma, which was stationary
     and usually never changed. However, as different machines used different
     variations of the stator, we do have to represent it even if its is
@@ -159,7 +166,7 @@ class Stator(object):
         return f"Stator({self.mode!r})"
 
 
-class Rotor(object):
+class Rotor:
     """This simple class represents a single rotor object. The rotors themselves
     are defined in RotorSettings.json of this package. Select a rotor by provding
     the rotor-type and Ringstellung while initializing.
@@ -194,6 +201,8 @@ class Rotor(object):
         self.ringstellung: int = alpha_to_num("A")
         if ringstellung is not None:
             self.ringstellung = alpha_to_num(ringstellung.upper())
+
+        self.position: int
 
         # Extremely nasty ringstellung implementation follows.
         # For this to work, ringstellung needs to be a number,
@@ -231,33 +240,34 @@ class Rotor(object):
                 else:
                     self.static = False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'Rotor("{self.catalog!r}", {self.name!r}", {self.ringstellung!r}, {self.ignore_static!r})'
 
 
-class RotorMechanism(object):
+class RotorMechanism:
     """This class represents and emulates the entire "moving parts" state of
     the machine. Essentially, this keeps track of the rotors and their
     positions. You can process characters one at a time through this object's
     "process" method. Initial settings are passed with the "set" method.
     """
 
-    def __init__(self, list_rotors, reflector):
-        """Expects a list of rotors and a rotor object representing reflector"""
+    def __init__(self, list_rotors: list[Rotor], reflector: Rotor) -> None:
+        """Expects list of rotors and a rotor object representing reflector"""
         self.rotors = list_rotors
         for rotor in self.rotors:
             rotor.position = 1
         self.reflector = reflector
 
-    def set(self, rotor_slot, setting):
+    def set(self, rotor_slot: int, setting: str) -> None:
         """Expects a python-indexed rotor and a character for a setting"""
         self.rotors[rotor_slot].position = alpha_to_index(setting)
 
-    def process(self, bit_in):
+    def process(self, bit_in: int) -> int:
         """Expects the pinning code from Stator, and returns an output
         of a similar nature. Also increments the state by adjusting the
         position attribute of each rotor in its set. On each operation
         the position bit is added at both ends."""
+
         next_bit = bit_in
 
         self.rotors[0].step_me = True  # The rightmost rotor always steps.
@@ -278,7 +288,7 @@ class RotorMechanism(object):
                 if rotor.step_me:
                     rotor.step_me = False  # We gonna step now.
                     rotor.position += 1
-                    if rotor.position > 25:  # Position is an index, can't exceed 25.
+                    if rotor.position > 25:  # Position can't exceed 25.
                         rotor.position -= 26
 
         for rotor in self.rotors:
@@ -297,22 +307,22 @@ class RotorMechanism(object):
 
         return output
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"RotorMechanism({self.rotors!r}, {self.reflector!r})"
 
 
-class Operator(object):
-    """A special preparser that does some preformatting to the feed. This
+class Operator:
+    """A special pre-parser that does some pre-formatting to the feed. This
     includes adjusting the spacing and stripping out characters that can't
     be represented easily in Enigma. This operator is not faithful to
     German practice at the time - it's only a convenience.
     """
 
-    def __init__(self, word_length):
+    def __init__(self, word_length: int) -> None:
         """word_length is an int that sets the length of "words" in output."""
         self.word_length = word_length
 
-    def format(self, message):
+    def format(self, message: str) -> str:
         """Accepts a string as input and does some parsing to it."""
         cased_message = message.upper()
         message_characters = cased_message.replace(" ", "")
@@ -348,7 +358,7 @@ class Operator(object):
         return f"Operator({self.word_length!r})"
 
 
-class Enigma(object):
+class Enigma:
     """A magic package that instantiates everything, allowing you to call your
     enigma machine as though it were a machine and operator pair. Allows these
     methods:
@@ -360,7 +370,7 @@ class Enigma(object):
 
     def __init__(
         self,
-        catalog: Mapping[str, Any] | str = "default",
+        catalog: Catalog | str = "default",
         stecker: str | None = None,
         stator: str = "military",
         rotors: Sequence[Sequence[str]] = (("I", "A"), ("II", "A"), ("III", "A")),
@@ -378,7 +388,10 @@ class Enigma(object):
         self.ignore_static_wheels = ignore_static_wheels
         # We have to reverse the rotors as we insert them because the signal
         # originates at the right-hand edge of the wheelpack.
-        if catalog == "default":
+
+        if isinstance(catalog, str):
+            if catalog != "default":
+                raise ValueError('Must be a Catalog or "default".')
             catalog = Catalog.default()
         self.catalog = catalog
         wheels = []
@@ -386,7 +399,9 @@ class Enigma(object):
         for rotor in rotors:
             rotor_req = rotor[0]
             ringstellung = rotor[1]
-            rotor_object = Rotor(catalog, rotor_req, ringstellung, ignore_static_wheels)
+            rotor_object = Rotor(
+                self.catalog, rotor_req, ringstellung, ignore_static_wheels
+            )
             wheels.append(rotor_object)
         try:
             reflector_rotor = Rotor(
@@ -409,7 +424,7 @@ class Enigma(object):
         elif operator:  # It's a bool
             self.operator = Operator(word_length)
 
-    def set_wheels(self, setting):
+    def set_wheels(self, setting: str) -> None:
         """Accepts a string that is the new pack setting, e.g. ABQ"""
         physical_setting = []
         for char in setting:
@@ -418,14 +433,14 @@ class Enigma(object):
         for i in range(0, len(physical_setting)):
             self.wheel_pack.set(i, physical_setting[i])
 
-    def set_stecker(self, setting):
+    def set_stecker(self, setting: str) -> None:
         """Accepts a string to be the new stecker board arrangement."""
-        self.stecker = Stecker(setting=str(setting))
+        self.stecker = Stecker(setting)
 
     # def set_wheelpack(self, list_rotors):
     # self.wheel_pack = RotorMechanism(list_rotors.reverse())
 
-    def parse(self, message="Hello World"):
+    def parse(self, message: str = "Hello World") -> str:
         if self.operator:
             str_message = self.operator.format(message)
         else:
@@ -450,7 +465,7 @@ class Enigma(object):
 
         return str_ciphertext
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"""Enigma(catalog={self.catalog},
 stecker={self.stecker.__repr__()},
 stator={self.stator.__repr__()},
@@ -497,12 +512,12 @@ def num_to_alpha(integ: int) -> str:
     return translator[integ]
 
 
-def map_faces(rotor):
+def map_faces(rotor: Rotor) -> tuple[dict[int, int], dict[int, int]]:
     """Are you ready for bad entry pinning mapping?"""
 
     pos = rotor.position + 1  # We need a pin number, rather than an index
-    neutral_to_pins = {}
-    pins_to_neutral = {}
+    neutral_to_pins: dict[int, int] = dict()
+    pins_to_neutral: dict[int, int] = dict()
 
     for i in range(1, 27):
         if pos > 26:
