@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Catalog.default()` returns a dict with data from `catalogue.json`
 - The `python_enigma.resources` "package" now exists for use with `importlib.resources`
 - A mostly empty `docs` directory. But it is a start.
+- The `python_enigma.types` module now exists
+- `Char` and `RotorSpec` type-like classes now exist.
 
 ## 1.1.4 2025-01-08
 
