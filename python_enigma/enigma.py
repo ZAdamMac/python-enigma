@@ -22,7 +22,7 @@ Development was by Zac Adam-MacEwen. See the README.md for details.
 # General Purpose Imports Block
 from collections import UserDict
 import json
-from typing import Any, NotRequired, Optional, TypedDict
+from typing import Any, Optional, TypedDict
 from collections.abc import Mapping, Sequence
 import importlib.resources as ir
 import python_enigma.resources
@@ -47,10 +47,10 @@ class ReflectorNotFound(Exception):
 
 
 class RotorSpec(TypedDict):
-    name: NotRequired[str]
+    name: str
     wiring: dict[str, int]
     notch: str
-    static: NotRequired[bool]
+    static: bool
 
 
 class Catalog(UserDict[str, RotorSpec]):
@@ -72,6 +72,12 @@ class Catalog(UserDict[str, RotorSpec]):
         if cls.default_data is None:
             with cls.CATALOG_FILE_PATH.open("r") as f:
                 cls.default_data = json.load(f)
+        assert cls.default_data is not None
+
+        for k, v in cls.default_data.items():
+            v["name"] = k
+            if "static" not in v:
+                v["static"] = False
 
         return Catalog(cls.default_data)
 
