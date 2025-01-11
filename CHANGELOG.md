@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A mostly empty `docs` directory. But it is a start.
 - The `python_enigma.types` module now exists
 - `Char` and `RotorSpec` type-like classes now exist.
+- `Stator` class has constant mappings `CIVILIAN` and `MILITARY`.
 
 ## 1.1.4 2025-01-08
 
