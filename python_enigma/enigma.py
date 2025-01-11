@@ -129,33 +129,39 @@ class Stator:
     "destat" to do the same in reverse.
     """
 
+    CIVILIAN: Mapping[Char, int] = {
+        Char(k): v
+        for k, v in {
+            "Q": 1, "W": 2, "E": 3, "R": 4, "T": 5, "Z": 6, "U": 7,
+            "I": 8, "O": 9, "P": 10, "A": 11, "S": 12, "D": 13, "F": 14,
+            "G": 15, "H": 16, "J": 17, "K": 18, "L": 19, "Y": 20, "X": 21,
+            "C": 22, "V": 23, "B": 24, "N": 25, "M": 26,
+        }.items()
+    }  # fmt: skip
+    MILITARY: Mapping[Char, int] = {
+        Char(k): v
+        for k, v in {
+            "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7,
+            "H": 8, "I": 9, "J": 10, "K": 11, "L": 12, "M": 13, "N": 14,
+            "O": 15, "P": 16, "Q": 17, "R": 18, "S": 19, "T": 20, "U": 21,
+            "V": 22, "W": 23, "X": 24, "Y": 25, "Z": 26,
+        }.items()
+    }  # fmt: skip
+
     def __init__(self, mode: str) -> None:
         """The stator mode is a string which states which stator to use. As
         currently implemented the options are "civilian" or "military"
         """
         mode = mode.lower()
         self.mode = mode
-        stator_settings: dict[str, int]
+        self.stator_settings: Mapping[Char, int]
+
         if mode == "civilian":
-            stator_settings = {
-                "Q": 1, "W": 2, "E": 3, "R": 4, "T": 5, "Z": 6, "U": 7,
-                "I": 8, "O": 9, "P": 10, "A": 11, "S": 12, "D": 13, "F": 14, "G": 15, "H": 16, "J": 17, "K": 18, "L": 19, "Y": 20, "X": 21,
-                "C": 22, "V": 23, "B": 24, "N": 25, "M": 26,
-            }  # fmt: skip
+            self.stator_settings = self.CIVILIAN
         elif mode == "military":
-            stator_settings = {
-                "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6,
-                "G": 7, "H": 8, "I": 9, "J": 10, "K": 11, "L": 12,
-                "M": 13, "N": 14, "O": 15, "P": 16, "Q": 17, "R": 18,
-                "S": 19, "T": 20, "U": 21, "V": 22, "W": 23, "X": 24,
-                "Y": 25, "Z": 26,
-                }  # fmt: skip
+            self.stator_settings = self.MILITARY
         else:
             raise UndefinedStatorError
-
-        self.stator_settings: dict[Char, int] = {
-            Char(c): n for c, n in stator_settings.items()
-        }
 
         self.destator: dict[int, Char] = {n: c for c, n in self.stator_settings.items()}
 
